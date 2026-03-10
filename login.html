@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Login - Siroco Wildlife Sanctuary</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-savanna: #8B6B4D;
+            --secondary-acacia: #5C8D7A;
+            --accent-sunset: #C97C5D;
+            --water-lake: #4A7A9C;
+            --cream-plains: #F5F0E6;
+            --dark-earth: #2C3E4F;
+            --wildlife-gold: #E6B17E;
+            --success-green: #4A7856;
+            --error-red: #C45D5D;
+            --bg-main: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --border-light: #E8E0D5;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-savanna) 0%, var(--secondary-acacia) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            font-size: 60px;
+            color: var(--wildlife-gold);
+            background: rgba(255,255,255,0.2);
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .logo-text {
+            color: white;
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .logo-text span {
+            font-size: 14px;
+            display: block;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border-radius: 30px;
+            padding: 30px 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .welcome-back {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .welcome-back h2 {
+            color: var(--text-dark);
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .welcome-back p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Alert Messages */
+        .alert-container {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .form-group label i {
+            color: var(--secondary-acacia);
+            margin-right: 5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid var(--border-light);
+            border-radius: 15px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--secondary-acacia);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(92, 141, 122, 0.1);
+        }
+
+        .input-wrapper .toggle-password {
+            position: absolute;
+            right: 15px;
+            left: auto;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+
+        .input-wrapper .toggle-password:hover {
+            color: var(--secondary-acacia);
+        }
+
+        /* Login Type Toggle */
+        .login-type-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #f0f0f0;
+            padding: 5px;
+            border-radius: 50px;
+        }
+
+        .login-type-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 25px;
+            background: transparent;
+            color: #666;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-type-btn.active {
+            background: var(--secondary-acacia);
+            color: white;
+        }
+
+        /* Form Options */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--secondary-acacia);
+        }
+
+        .remember-me span {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .forgot-password {
+            color: var(--secondary-acacia);
+            font-size: 14px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .forgot-password:hover {
+            color: var(--primary-savanna);
+            text-decoration: underline;
+        }
+
+        /* Login Button */
+        .login-btn {
+            width: 100%;
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .login-btn:hover:not(:disabled) {
+            background: var(--primary-savanna);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .login-btn i {
+            font-size: 18px;
+        }
+
+        /* Register Link */
+        .register-link {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .register-link a {
+            color: var(--secondary-acacia);
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+
+        .register-link a:hover {
+            color: var(--primary-savanna);
+            text-decoration: underline;
+        }
+
+        /* Back to Home */
+        .back-home {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-home a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-home a:hover {
+            opacity: 1;
+        }
+
+        /* Loading Spinner */
+        .fa-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Demo Credentials */
+        .demo-credentials {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 12px;
+            border: 1px dashed var(--border-light);
+        }
+
+        .demo-credentials p {
+            color: #666;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .demo-credentials .cred-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 0;
+            color: var(--text-dark);
+        }
+
+        .demo-credentials .cred-item i {
+            color: var(--secondary-acacia);
+            width: 20px;
+        }
+
+        .demo-credentials .cred-item button {
+            background: none;
+            border: 1px solid var(--border-light);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            cursor: pointer;
+            color: #666;
+            margin-left: auto;
+        }
+
+        .demo-credentials .cred-item button:hover {
+            background: var(--secondary-acacia);
+            color: white;
+            border-color: var(--secondary-acacia);
+        }
+
+        /* Phone Input */
+        .phone-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .phone-prefix {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid var(--border-light);
+            color: #666;
+            font-weight: 500;
+        }
+
+        .phone-input-wrapper .input-wrapper {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <div class="logo-icon">
+                <i class="fas fa-tree"></i>
+            </div>
+            <div class="logo-text">
+                Siroco Sanctuary
+                <span>Lake Naivasha, Kenya</span>
+            </div>
+        </div>
+
+        <!-- Login Card -->
+        <div class="login-card">
+            <div class="welcome-back">
+                <h2>Welcome Back! 👋</h2>
+                <p>Login to access your account</p>
+            </div>
+
+            <!-- Alert Container -->
+            <div id="alertContainer" class="alert-container"></div>
+
+            <!-- Login Type Toggle -->
+            <div class="login-type-toggle">
+                <button class="login-type-btn active" id="emailLoginBtn" onclick="switchLoginType('email')">Email</button>
+                <button class="login-type-btn" id="phoneLoginBtn" onclick="switchLoginType('phone')">Phone</button>
+                <button class="login-type-btn" id="nameLoginBtn" onclick="switchLoginType('name')">Full Name</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="event.preventDefault(); loginUser();">
+                <!-- Email Login (default) -->
+                <div id="emailLoginGroup" class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" placeholder="Enter your email" value="ag@gmail.com">
+                    </div>
+                </div>
+
+                <!-- Phone Login (hidden by default) -->
+                <div id="phoneLoginGroup" class="form-group" style="display: none;">
+                    <label><i class="fas fa-phone"></i> Phone Number</label>
+                    <div class="phone-input-wrapper">
+                        <span class="phone-prefix">+254</span>
+                        <div class="input-wrapper">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" id="phone" placeholder="712345678">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Full Name Login (hidden by default) -->
+                <div id="nameLoginGroup" class="form-group" style="display: none;">
+                    <label><i class="fas fa-user"></i> Full Name</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="fullName" placeholder="Enter your full name" value="andy G">
+                    </div>
+                </div>
+
+                <!-- Password (common for all) -->
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="Enter your password" value="123456">
+                        <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe">
+                        <span>Remember me</span>
+                    </label>
+                    <span class="forgot-password" onclick="forgotPassword()">Forgot Password?</span>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </button>
+            </form>
+
+            <!-- Register Link -->
+            <div class="register-link">
+                Don't have an account? <a href="register.html">Create Account</a>
+            </div>
+
+            <!-- Demo Credentials -->
+            <div class="demo-credentials">
+                <p><i class="fas fa-info-circle" style="color: var(--secondary-acacia);"></i> Demo Users:</p>
+                <div class="cred-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>ag@gmail.com / 123456</span>
+                    <button onclick="fillDemoCredentials('email', 'ag@gmail.com', '123456')">Use</button>
+                </div>
+                <div class="cred-item">
+                    <i class="fas fa-phone"></i>
+                    <span>0712345678 / 123456</span>
+                    <button onclick="fillDemoCredentials('phone', '0712345678', '123456')">Use</button>
+                </div>
+                <div class="cred-item">
+                    <i class="fas fa-user"></i>
+                    <span>andy G / 123456</span>
+                    <button onclick="fillDemoCredentials('name', 'andy G', '123456')">Use</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Home -->
+        <div class="back-home">
+            <a href="index.html">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration for sirocco-6668e
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
+            authDomain: "sirocco-6668e.firebaseapp.com",
+            projectId: "sirocco-6668e",
+            storageBucket: "sirocco-6668e.firebasestorage.app",
+            messagingSenderId: "892213068784",
+            appId: "1:892213068784:web:5b4021e7fbe638999e5335",
+            measurementId: "G-BPCVPVC9R7"
+        };
+
+        // Initialize Firebase (only Firestore needed)
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // DOM Elements
+        const loginBtn = document.getElementById('loginBtn');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+        const fullNameInput = document.getElementById('fullName');
+        const passwordInput = document.getElementById('password');
+        const rememberMe = document.getElementById('rememberMe');
+        const alertContainer = document.getElementById('alertContainer');
+        
+        // Login type groups
+        const emailGroup = document.getElementById('emailLoginGroup');
+        const phoneGroup = document.getElementById('phoneLoginGroup');
+        const nameGroup = document.getElementById('nameLoginGroup');
+        
+        // Login type buttons
+        const emailTypeBtn = document.getElementById('emailLoginBtn');
+        const phoneTypeBtn = document.getElementById('phoneLoginBtn');
+        const nameTypeBtn = document.getElementById('nameLoginBtn');
+
+        let currentLoginType = 'email';
+
+        // Check for remembered user
+        const rememberedUser = localStorage.getItem('rememberedUser');
+        if (rememberedUser) {
+            const user = JSON.parse(rememberedUser);
+            if (user.loginType === 'email') {
+                emailInput.value = user.value;
+                switchLoginType('email');
+            } else if (user.loginType === 'phone') {
+                phoneInput.value = user.value;
+                switchLoginType('phone');
+            } else if (user.loginType === 'name') {
+                fullNameInput.value = user.value;
+                switchLoginType('name');
+            }
+            passwordInput.value = user.password;
+            rememberMe.checked = true;
+        }
+
+        // Switch login type
+        function switchLoginType(type) {
+            currentLoginType = type;
+            
+            // Update buttons
+            emailTypeBtn.classList.remove('active');
+            phoneTypeBtn.classList.remove('active');
+            nameTypeBtn.classList.remove('active');
+            
+            // Hide all groups
+            emailGroup.style.display = 'none';
+            phoneGroup.style.display = 'none';
+            nameGroup.style.display = 'none';
+            
+            // Show selected group
+            if (type === 'email') {
+                emailTypeBtn.classList.add('active');
+                emailGroup.style.display = 'block';
+            } else if (type === 'phone') {
+                phoneTypeBtn.classList.add('active');
+                phoneGroup.style.display = 'block';
+            } else if (type === 'name') {
+                nameTypeBtn.classList.add('active');
+                nameGroup.style.display = 'block';
+            }
+        }
+
+        // Toggle password visibility
+        function togglePassword() {
+            const password = document.getElementById('password');
+            const toggle = document.querySelector('.toggle-password');
+            
+            if (password.type === 'password') {
+                password.type = 'text';
+                toggle.classList.remove('fa-eye');
+                toggle.classList.add('fa-eye-slash');
+            } else {
+                password.type = 'password';
+                toggle.classList.remove('fa-eye-slash');
+                toggle.classList.add('fa-eye');
+            }
+        }
+
+        // Show alert function
+        function showAlert(message, type = 'info') {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                if (alertContainer.contains(alert)) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        // Fill demo credentials
+        function fillDemoCredentials(type, value, password) {
+            switchLoginType(type);
+            if (type === 'email') {
+                emailInput.value = value;
+            } else if (type === 'phone') {
+                phoneInput.value = value;
+            } else if (type === 'name') {
+                fullNameInput.value = value;
+            }
+            passwordInput.value = password;
+            showAlert('Credentials filled! Click Login', 'info');
+        }
+
+        // Login function
+        async function loginUser() {
+            const password = passwordInput.value.trim();
+
+            if (!password) {
+                showAlert('Please enter your password', 'error');
+                return;
+            }
+
+            // Get identifier based on login type
+            let identifier = '';
+            let field = '';
+            
+            if (currentLoginType === 'email') {
+                identifier = emailInput.value.trim();
+                field = 'email';
+                if (!identifier) {
+                    showAlert('Please enter your email', 'error');
+                    return;
+                }
+                if (!identifier.includes('@')) {
+                    showAlert('Please enter a valid email', 'error');
+                    return;
+                }
+            } else if (currentLoginType === 'phone') {
+                identifier = phoneInput.value.trim();
+                field = 'PhoneNumber';
+                if (!identifier) {
+                    showAlert('Please enter your phone number', 'error');
+                    return;
+                }
+                // Format phone number if needed
+                if (!identifier.startsWith('0') && !identifier.startsWith('+')) {
+                    identifier = '0' + identifier;
+                }
+            } else if (currentLoginType === 'name') {
+                identifier = fullNameInput.value.trim();
+                field = 'fullName';
+                if (!identifier) {
+                    showAlert('Please enter your full name', 'error');
+                    return;
+                }
+            }
+
+            // Disable button
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+
+            try {
+                console.log(`🔍 Searching for user with ${field}: ${identifier}`);
+                
+                // Query Firestore for user
+                let query = db.collection('users').where(field, '==', identifier);
+                const querySnapshot = await query.get();
+
+                if (querySnapshot.empty) {
+                    console.log('❌ User not found');
+                    showAlert(`No user found with this ${currentLoginType}`, 'error');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                    return;
+                }
+
+                // Get user data
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
+                
+                console.log('✅ User found:', userData);
+
+                // Verify password (simple comparison - in production use hashed passwords)
+                if (userData.password !== password) {
+                    console.log('❌ Incorrect password');
+                    showAlert('Incorrect password', 'error');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                    return;
+                }
+
+                // Handle remember me
+                if (rememberMe.checked) {
+                    const rememberData = {
+                        loginType: currentLoginType,
+                        value: identifier,
+                        password: password
+                    };
+                    localStorage.setItem('rememberedUser', JSON.stringify(rememberData));
+                } else {
+                    localStorage.removeItem('rememberedUser');
+                }
+
+                // Store current user session
+                const sessionUser = {
+                    uid: userDoc.id,
+                    fullName: userData.fullName,
+                    email: userData.email,
+                    phone: userData.PhoneNumber,
+                    loggedInAt: new Date().toISOString()
+                };
+                localStorage.setItem('currentUser', JSON.stringify(sessionUser));
+
+                showAlert(`Welcome back, ${userData.fullName}!`, 'success');
+
+                // Redirect to homepage
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('❌ Login error:', error);
+                showAlert('Login failed: ' + error.message, 'error');
+                
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+            }
+        }
+
+        // Forgot password function
+        function forgotPassword() {
+            let identifier = '';
+            let type = '';
+            
+            if (currentLoginType === 'email') {
+                identifier = emailInput.value.trim();
+                type = 'email';
+            } else if (currentLoginType === 'phone') {
+                identifier = phoneInput.value.trim();
+                type = 'phone number';
+            } else if (currentLoginType === 'name') {
+                identifier = fullNameInput.value.trim();
+                type = 'full name';
+            }
+
+            if (!identifier) {
+                showAlert(`Please enter your ${type} first`, 'error');
+                return;
+            }
+
+            showAlert(`Password reset functionality would send to ${identifier}`, 'info');
+            // In production, you'd implement password reset via email/SMS
+        }
+
+        // Check if user is already logged in
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser) {
+            console.log('User already logged in');
+            // Uncomment to auto-redirect:
+            // window.location.href = 'index.html';
+        }
+
+        // Handle Enter key
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loginUser();
+            }
+        });
+
+        console.log('✅ Login page ready for Firestore authentication');
+    </script>
+</body>
+</html>

@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Siroco Wildlife Sanctuary | Lake Naivasha</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-savanna: #8B6B4D;
+            --secondary-acacia: #5C8D7A;
+            --accent-sunset: #C97C5D;
+            --water-lake: #4A7A9C;
+            --cream-plains: #F5F0E6;
+            --dark-earth: #2C3E4F;
+            --wildlife-gold: #E6B17E;
+            --success-green: #4A7856;
+            --error-red: #C45D5D;
+            --bg-main: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --border-light: #E8E0D5;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-savanna) 0%, var(--secondary-acacia) 100%);
+            color: white;
+            padding: 20px 16px;
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .logo-icon {
+            font-size: 32px;
+            color: var(--wildlife-gold);
+        }
+
+        .hotel-name {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .hotel-name span {
+            font-size: 12px;
+            display: block;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .menu-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menu-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .welcome-section {
+            margin-top: 10px;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .welcome-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .welcome-subtitle i {
+            color: var(--wildlife-gold);
+        }
+
+        .search-bar {
+            background: white;
+            border-radius: 25px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .search-bar i {
+            color: var(--primary-savanna);
+            font-size: 18px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            padding: 8px 0;
+            background: transparent;
+        }
+
+        .search-bar input::placeholder {
+            color: #999;
+        }
+
+        /* Auth Status Bar */
+        .auth-status {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 12px 16px;
+            margin: 10px 0 20px 0;
+            border: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .auth-message {
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .auth-message i {
+            color: var(--secondary-acacia);
+            margin-right: 8px;
+        }
+
+        .auth-button {
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .auth-button:hover {
+            background: var(--primary-savanna);
+        }
+
+        .auth-button.outline {
+            background: transparent;
+            border: 2px solid var(--secondary-acacia);
+            color: var(--secondary-acacia);
+        }
+
+        .auth-button.outline:hover {
+            background: var(--secondary-acacia);
+            color: white;
+        }
+
+        /* User Profile Card */
+        .user-profile-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 10px 0 25px 0;
+            border: 1px solid var(--border-light);
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+
+        .profile-email {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .stat-item {
+            background: var(--cream-plains);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-savanna);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .logout-btn {
+            width: 100%;
+            background: var(--error-red);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .logout-btn:hover {
+            background: #b04545;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 24px 0;
+            padding: 0 4px;
+        }
+
+        .action-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            border: 1px solid var(--border-light);
+            text-decoration: none;
+            color: var(--text-dark);
+        }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        .action-icon {
+            font-size: 28px;
+            color: var(--secondary-acacia);
+            margin-bottom: 8px;
+        }
+
+        .action-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 25px 0 15px 0;
+        }
+
+        .section-title h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-dark);
+            position: relative;
+        }
+
+        .section-title h2:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--accent-sunset);
+            border-radius: 2px;
+        }
+
+        .view-all {
+            color: var(--primary-savanna);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .rooms-scroll {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 4px 0 16px 0;
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .rooms-scroll::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .rooms-scroll::-webkit-scrollbar-thumb {
+            background: var(--primary-savanna);
+            border-radius: 10px;
+        }
+
+        .room-card {
+            min-width: 240px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .room-card:hover {
+            transform: scale(0.98);
+        }
+
+        .room-image {
+            height: 140px;
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .room-image i {
+            font-size: 48px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .room-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--accent-sunset);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .room-details {
+            padding: 16px;
+        }
+
+        .room-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .room-price {
+            color: var(--secondary-acacia);
+            font-weight: 600;
+            font-size: 16px;
+            margin: 8px 0;
+        }
+
+        .room-price span {
+            font-size: 12px;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .room-features {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .room-features i {
+            color: var(--primary-savanna);
+        }
+
+        .book-btn {
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .book-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        .food-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .food-item {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px 12px;
+            border: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .food-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .food-icon {
+            font-size: 32px;
+            color: var(--accent-sunset);
+            margin-bottom: 10px;
+        }
+
+        .food-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .food-price {
+            color: var(--secondary-acacia);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .activity-list {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid var(--border-light);
+            margin: 16px 0;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .activity-item:hover {
+            background: rgba(92, 141, 122, 0.05);
+            border-radius: 10px;
+            padding: 12px;
+            margin: -12px -15px;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-time {
+            background: var(--primary-savanna);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .activity-location {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .activity-status {
+            color: var(--success-green);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid var(--border-light);
+            padding: 12px 16px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            transition: color 0.3s;
+            text-decoration: none;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+        }
+
+        .nav-item.active {
+            color: var(--secondary-acacia);
+        }
+
+        .nav-item:hover {
+            color: var(--primary-savanna);
+        }
+
+        .content {
+            padding-bottom: 80px;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--cream-plains);
+            border-top: 5px solid var(--secondary-acacia);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 280px;
+            height: 100%;
+            background: white;
+            z-index: 1001;
+            transition: right 0.3s ease;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .side-menu.open {
+            right: 0;
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .menu-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            margin: 5px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .menu-item:hover {
+            background: var(--cream-plains);
+        }
+
+        .menu-item i {
+            width: 24px;
+            color: var(--secondary-acacia);
+        }
+
+        .menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .menu-overlay.show {
+            display: block;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                max-width: 720px;
+            }
+            
+            .food-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Side Menu -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <h3>Menu</h3>
+            <button class="menu-close" id="closeMenu">&times;</button>
+        </div>
+        <div class="menu-item" onclick="navigateTo('profile')">
+            <i class="fas fa-user-circle"></i>
+            <span>My Profile</span>
+        </div>
+        <div class="menu-item" onclick="navigateTo('bookings')">
+            <i class="fas fa-calendar-check"></i>
+            <span>My Bookings</span>
+        </div>
+        <div class="menu-item" onclick="navigateTo('settings')">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </div>
+        <div class="menu-item" onclick="navigateTo('help')">
+            <i class="fas fa-question-circle"></i>
+            <span>Help & Support</span>
+        </div>
+        <div class="menu-item" onclick="navigateTo('about')">
+            <i class="fas fa-info-circle"></i>
+            <span>About Siroco</span>
+        </div>
+        <div class="menu-item" onclick="navigateTo('contact')">
+            <i class="fas fa-envelope"></i>
+            <span>Contact Us</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="logo-area" onclick="window.location.href='index.html'">
+                    <i class="fas fa-tree logo-icon"></i>
+                    <div class="hotel-name">
+                        Siroco
+                        <span>Wildlife Sanctuary</span>
+                    </div>
+                </div>
+                <button class="menu-btn" id="menuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <div class="welcome-section">
+                <h1 class="welcome-title" id="welcomeMessage">Welcome,<br>Explorer!</h1>
+                <div class="welcome-subtitle">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Lake Naivasha, Kenya
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search rooms, activities, food..." onkeypress="handleSearch(event)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Container (for messages) -->
+        <div id="alertContainer"></div>
+
+        <!-- Auth Status Bar (always visible) -->
+        <div class="auth-status" id="authStatus">
+            <div class="auth-message">
+                <i class="fas fa-user-circle"></i>
+                <span id="authMessage">Checking login status...</span>
+            </div>
+            <div id="authButtons">
+                <!-- Dynamically filled by JavaScript -->
+            </div>
+        </div>
+
+        <!-- User Profile Card (visible when logged in) -->
+        <div class="user-profile-card" id="userProfileCard">
+            <div class="profile-header">
+                <div class="profile-avatar" id="profileAvatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-info">
+                    <div class="profile-name" id="profileName">Loading...</div>
+                    <div class="profile-email" id="profileEmail">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="bookingCount">0</div>
+                    <div class="stat-label">Bookings</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="pointsCount">0</div>
+                    <div class="stat-label">Points</div>
+                </div>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <a href="rooms.html" class="action-card">
+                <i class="fas fa-bed action-icon"></i>
+                <span class="action-label">Rooms</span>
+            </a>
+            <a href="food.html" class="action-card">
+                <i class="fas fa-utensils action-icon"></i>
+                <span class="action-label">Food</span>
+            </a>
+            <a href="activities.html" class="action-card">
+                <i class="fas fa-hiking action-icon"></i>
+                <span class="action-label">Activities</span>
+            </a>
+            <a href="my-trips.html" class="action-card">
+                <i class="fas fa-calendar-check action-icon"></i>
+                <span class="action-label">My Trips</span>
+            </a>
+        </div>
+
+        <!-- Main Content with bottom padding for nav -->
+        <div class="content">
+            <!-- Featured Rooms Section -->
+            <div class="section-title">
+                <h2>Featured Rooms</h2>
+                <a href="rooms.html" class="view-all">View All</a>
+            </div>
+
+            <div class="rooms-scroll" id="featuredRooms">
+                <div style="text-align: center; padding: 20px; width: 100%;">
+                    <i class="fas fa-spinner fa-spin" style="color: var(--secondary-acacia);"></i>
+                    <p>Loading rooms...</p>
+                </div>
+            </div>
+
+            <!-- Food Menu Preview -->
+            <div class="section-title">
+                <h2>Today's Specials</h2>
+                <a href="food.html" class="view-all">View Menu</a>
+            </div>
+
+            <div class="food-grid" id="featuredFood">
+                <div style="text-align: center; padding: 20px; grid-column: span 2;">
+                    <i class="fas fa-spinner fa-spin" style="color: var(--secondary-acacia);"></i>
+                    <p>Loading menu...</p>
+                </div>
+            </div>
+
+            <!-- Today's Activities -->
+            <div class="section-title">
+                <h2>Today's Activities</h2>
+                <a href="activities.html" class="view-all">Schedule</a>
+            </div>
+
+            <div class="activity-list" id="featuredActivities">
+                <div style="text-align: center; padding: 20px;">
+                    <i class="fas fa-spinner fa-spin" style="color: var(--secondary-acacia);"></i>
+                    <p>Loading activities...</p>
+                </div>
+            </div>
+
+            <!-- Wildlife Updates -->
+            <div class="section-title">
+                <h2>Wildlife Sightings</h2>
+                <a href="wildlife.html" class="view-all">Updates</a>
+            </div>
+
+            <div id="wildlifeUpdates" style="margin-bottom: 20px;">
+                <div style="text-align: center; padding: 20px; background: var(--card-bg); border-radius: 20px;">
+                    <i class="fas fa-spinner fa-spin" style="color: var(--secondary-acacia);"></i>
+                    <p>Loading wildlife updates...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <a href="index.html" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="rooms.html" class="nav-item">
+                <i class="fas fa-bed"></i>
+                <span>Rooms</span>
+            </a>
+            <a href="food.html" class="nav-item">
+                <i class="fas fa-utensils"></i>
+                <span>Food</span>
+            </a>
+            <a href="activities.html" class="nav-item">
+                <i class="fas fa-hiking"></i>
+                <span>Activities</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
+            authDomain: "sirocco-6668e.firebaseapp.com",
+            projectId: "sirocco-6668e",
+            storageBucket: "sirocco-6668e.firebasestorage.app",
+            messagingSenderId: "892213068784",
+            appId: "1:892213068784:web:5b4021e7fbe638999e5335",
+            measurementId: "G-BPCVPVC9R7"
+        };
+
+        // Initialize Firebase (only Firestore needed)
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // DOM Elements
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const authMessage = document.getElementById('authMessage');
+        const authButtons = document.getElementById('authButtons');
+        const userProfileCard = document.getElementById('userProfileCard');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const profileName = document.getElementById('profileName');
+        const profileEmail = document.getElementById('profileEmail');
+        const bookingCount = document.getElementById('bookingCount');
+        const pointsCount = document.getElementById('pointsCount');
+        const alertContainer = document.getElementById('alertContainer');
+
+        // Show alert function
+        function showAlert(message, type = 'info') {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Check if user is logged in (from localStorage)
+        function checkLoginStatus() {
+            const currentUser = localStorage.getItem('currentUser');
+            
+            if (currentUser) {
+                const user = JSON.parse(currentUser);
+                console.log('✅ User logged in:', user);
+                
+                authMessage.innerHTML = `<i class="fas fa-check-circle"></i> Logged in as ${user.email || user.fullName}`;
+                
+                authButtons.innerHTML = `
+                    <span class="auth-button" style="background: transparent; border: 2px solid var(--secondary-acacia); color: var(--secondary-acacia); cursor: default;">
+                        <i class="fas fa-user-check"></i> Online
+                    </span>
+                `;
+
+                userProfileCard.style.display = 'block';
+                welcomeMessage.innerHTML = `Welcome back,<br>${user.fullName || 'Explorer'}!`;
+                
+                profileName.textContent = user.fullName || 'Guest';
+                profileEmail.textContent = user.email || 'No email';
+                
+                // Load user stats from Firestore
+                loadUserStats(user.uid);
+                
+                showAlert(`Welcome back, ${user.fullName || 'Guest'}!`, 'success');
+            } else {
+                console.log('❌ No user logged in');
+                
+                authMessage.innerHTML = '<i class="fas fa-user-circle"></i> Not logged in';
+                
+                authButtons.innerHTML = `
+                    <a href="login.html" class="auth-button" style="margin-right: 8px;">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="register.html" class="auth-button outline">
+                        <i class="fas fa-user-plus"></i> Register
+                    </a>
+                `;
+
+                userProfileCard.style.display = 'none';
+                welcomeMessage.innerHTML = 'Welcome,<br>Explorer!';
+                showAlert('Please login to access all features', 'info');
+            }
+        }
+
+        // Load user stats from Firestore
+        async function loadUserStats(uid) {
+            try {
+                const userDoc = await db.collection('users').doc(uid).get();
+                
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    bookingCount.textContent = userData.bookings || 0;
+                    pointsCount.textContent = userData.points || 0;
+                }
+            } catch (error) {
+                console.error('Error loading user stats:', error);
+            }
+        }
+
+        // Logout function
+        function logout() {
+            loadingOverlay.style.display = 'flex';
+            
+            // Remove from localStorage
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('rememberedUser');
+            
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+                showAlert('Logged out successfully!', 'success');
+                checkLoginStatus(); // Refresh UI
+            }, 1000);
+        }
+
+        // Load featured rooms
+        async function loadFeaturedRooms() {
+            try {
+                const snapshot = await db.collection("rooms")
+                    .where("isFeatured", "==", true)
+                    .limit(5)
+                    .get();
+                
+                const container = document.getElementById('featuredRooms');
+                
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="room-card" onclick="viewRoomDetails('olerai')">
+                            <div class="room-image">
+                                <i class="fas fa-tree"></i>
+                                <span class="room-badge">Best Seller</span>
+                            </div>
+                            <div class="room-details">
+                                <h3 class="room-name">Olerai House</h3>
+                                <div class="room-price">KSH 15,000 <span>/ night</span></div>
+                                <div class="room-features">
+                                    <span><i class="fas fa-user-friends"></i> 4 guests</span>
+                                    <span><i class="fas fa-wifi"></i> Free</span>
+                                </div>
+                                <button class="book-btn" onclick="event.stopPropagation(); quickBook('olerai')">
+                                    <i class="fas fa-calendar-plus"></i> Book Now
+                                </button>
+                            </div>
+                        </div>
+                        <div class="room-card" onclick="viewRoomDetails('tinga')">
+                            <div class="room-image">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div class="room-details">
+                                <h3 class="room-name">Tinga House</h3>
+                                <div class="room-price">KSH 12,000 <span>/ night</span></div>
+                                <div class="room-features">
+                                    <span><i class="fas fa-user-friends"></i> 3 guests</span>
+                                    <span><i class="fas fa-wifi"></i> Free</span>
+                                </div>
+                                <button class="book-btn" onclick="event.stopPropagation(); quickBook('tinga')">
+                                    <i class="fas fa-calendar-plus"></i> Book Now
+                                </button>
+                            </div>
+                        </div>
+                        <div class="room-card" onclick="viewRoomDetails('dairy')">
+                            <div class="room-image">
+                                <i class="fas fa-warehouse"></i>
+                            </div>
+                            <div class="room-details">
+                                <h3 class="room-name">The Dairy</h3>
+                                <div class="room-price">KSH 8,500 <span>/ night</span></div>
+                                <div class="room-features">
+                                    <span><i class="fas fa-user-friends"></i> 2 guests</span>
+                                    <span><i class="fas fa-wifi"></i> Free</span>
+                                </div>
+                                <button class="book-btn" onclick="event.stopPropagation(); quickBook('dairy')">
+                                    <i class="fas fa-calendar-plus"></i> Book Now
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                snapshot.forEach(doc => {
+                    const room = doc.data();
+                    const icon = room.type === 'house' ? 'fa-tree' : room.type === 'cottage' ? 'fa-warehouse' : 'fa-home';
+                    
+                    html += `
+                        <div class="room-card" onclick="viewRoomDetails('${doc.id}')">
+                            <div class="room-image">
+                                <i class="fas ${icon}"></i>
+                                <span class="room-badge">Featured</span>
+                            </div>
+                            <div class="room-details">
+                                <h3 class="room-name">${room.name || 'Room'}</h3>
+                                <div class="room-price">KSH ${(room.pricepernight || 0).toLocaleString()} <span>/ night</span></div>
+                                <div class="room-features">
+                                    <span><i class="fas fa-user-friends"></i> ${room.capacity || 2} guests</span>
+                                    ${room.amenities && room.amenities.includes('wifi') ? '<span><i class="fas fa-wifi"></i> Free</span>' : ''}
+                                </div>
+                                <button class="book-btn" onclick="event.stopPropagation(); quickBook('${doc.id}')">
+                                    <i class="fas fa-calendar-plus"></i> Book Now
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (error) {
+                console.error("Error loading featured rooms:", error);
+                // Fallback to static content
+                document.getElementById('featuredRooms').innerHTML = `
+                    <div class="room-card" onclick="viewRoomDetails('olerai')">
+                        <div class="room-image">
+                            <i class="fas fa-tree"></i>
+                            <span class="room-badge">Best Seller</span>
+                        </div>
+                        <div class="room-details">
+                            <h3 class="room-name">Olerai House</h3>
+                            <div class="room-price">KSH 15,000 <span>/ night</span></div>
+                            <div class="room-features">
+                                <span><i class="fas fa-user-friends"></i> 4 guests</span>
+                                <span><i class="fas fa-wifi"></i> Free</span>
+                            </div>
+                            <button class="book-btn" onclick="event.stopPropagation(); quickBook('olerai')">
+                                <i class="fas fa-calendar-plus"></i> Book Now
+                            </button>
+                        </div>
+                    </div>
+                    <div class="room-card" onclick="viewRoomDetails('tinga')">
+                        <div class="room-image">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="room-details">
+                            <h3 class="room-name">Tinga House</h3>
+                            <div class="room-price">KSH 12,000 <span>/ night</span></div>
+                            <div class="room-features">
+                                <span><i class="fas fa-user-friends"></i> 3 guests</span>
+                                <span><i class="fas fa-wifi"></i> Free</span>
+                            </div>
+                            <button class="book-btn" onclick="event.stopPropagation(); quickBook('tinga')">
+                                <i class="fas fa-calendar-plus"></i> Book Now
+                            </button>
+                        </div>
+                    </div>
+                    <div class="room-card" onclick="viewRoomDetails('dairy')">
+                        <div class="room-image">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <div class="room-details">
+                            <h3 class="room-name">The Dairy</h3>
+                            <div class="room-price">KSH 8,500 <span>/ night</span></div>
+                            <div class="room-features">
+                                <span><i class="fas fa-user-friends"></i> 2 guests</span>
+                                <span><i class="fas fa-wifi"></i> Free</span>
+                            </div>
+                            <button class="book-btn" onclick="event.stopPropagation(); quickBook('dairy')">
+                                <i class="fas fa-calendar-plus"></i> Book Now
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Load featured food
+        async function loadFeaturedFood() {
+            try {
+                const snapshot = await db.collection("food_items")
+                    .where("isSpecial", "==", true)
+                    .limit(4)
+                    .get();
+                
+                const container = document.getElementById('featuredFood');
+                
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="food-item" onclick="viewFoodItem('breakfast')">
+                            <i class="fas fa-egg food-icon"></i>
+                            <span class="food-name">Breakfast</span>
+                            <span class="food-price">KSH 850</span>
+                        </div>
+                        <div class="food-item" onclick="viewFoodItem('lunch')">
+                            <i class="fas fa-pizza-slice food-icon"></i>
+                            <span class="food-name">Lunch</span>
+                            <span class="food-price">KSH 1,200</span>
+                        </div>
+                        <div class="food-item" onclick="viewFoodItem('dinner')">
+                            <i class="fas fa-utensils food-icon"></i>
+                            <span class="food-name">Dinner</span>
+                            <span class="food-price">KSH 1,500</span>
+                        </div>
+                        <div class="food-item" onclick="viewFoodItem('beverages')">
+                            <i class="fas fa-coffee food-icon"></i>
+                            <span class="food-name">Beverages</span>
+                            <span class="food-price">KSH 350</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                snapshot.forEach(doc => {
+                    const food = doc.data();
+                    const icon = food.category === 'breakfast' ? 'fa-egg' : 
+                                 food.category === 'lunch' ? 'fa-pizza-slice' : 
+                                 food.category === 'dinner' ? 'fa-utensils' : 'fa-coffee';
+                    
+                    html += `
+                        <div class="food-item" onclick="viewFoodItem('${doc.id}')">
+                            <i class="fas ${icon} food-icon"></i>
+                            <span class="food-name">${food.name || 'Food Item'}</span>
+                            <span class="food-price">KSH ${food.price || 0}</span>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (error) {
+                console.error("Error loading food:", error);
+            }
+        }
+
+        // Load featured activities
+        async function loadFeaturedActivities() {
+            try {
+                const snapshot = await db.collection("activities")
+                    .where("isPopular", "==", true)
+                    .limit(4)
+                    .get();
+                
+                const container = document.getElementById('featuredActivities');
+                
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="activity-item" onclick="viewActivity('game-drive')">
+                            <div class="activity-time">08:00 AM</div>
+                            <div class="activity-info">
+                                <div class="activity-title">Morning Game Drive</div>
+                                <div class="activity-location">
+                                    <i class="fas fa-map-pin"></i> Sanctuary Grounds
+                                </div>
+                            </div>
+                            <div class="activity-status">Available</div>
+                        </div>
+                        <div class="activity-item" onclick="viewActivity('bird-walk')">
+                            <div class="activity-time">10:00 AM</div>
+                            <div class="activity-info">
+                                <div class="activity-title">Guided Bird Walk</div>
+                                <div class="activity-location">
+                                    <i class="fas fa-map-pin"></i> Lake Shore
+                                </div>
+                            </div>
+                            <div class="activity-status">Available</div>
+                        </div>
+                        <div class="activity-item" onclick="viewActivity('horse-riding')">
+                            <div class="activity-time">03:00 PM</div>
+                            <div class="activity-info">
+                                <div class="activity-title">Horse Riding</div>
+                                <div class="activity-location">
+                                    <i class="fas fa-map-pin"></i> Savanna Plains
+                                </div>
+                            </div>
+                            <div class="activity-status">Limited Slots</div>
+                        </div>
+                        <div class="activity-item" onclick="viewActivity('sunset-photo')">
+                            <div class="activity-time">06:30 PM</div>
+                            <div class="activity-info">
+                                <div class="activity-title">Sunset Photography</div>
+                                <div class="activity-location">
+                                    <i class="fas fa-map-pin"></i> Viewpoint
+                                </div>
+                            </div>
+                            <div class="activity-status">Available</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                snapshot.forEach(doc => {
+                    const activity = doc.data();
+                    html += `
+                        <div class="activity-item" onclick="viewActivity('${doc.id}')">
+                            <div class="activity-time">${activity.timeSlots?.[0]?.startTime || '08:00 AM'}</div>
+                            <div class="activity-info">
+                                <div class="activity-title">${activity.name || 'Activity'}</div>
+                                <div class="activity-location">
+                                    <i class="fas fa-map-pin"></i> ${activity.location || 'Sanctuary'}
+                                </div>
+                            </div>
+                            <div class="activity-status">${activity.isAvailable ? 'Available' : 'Limited'}</div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (error) {
+                console.error("Error loading activities:", error);
+            }
+        }
+
+        // Load wildlife updates
+        async function loadWildlifeUpdates() {
+            try {
+                const snapshot = await db.collection("wildlife_sightings")
+                    .orderBy("spottedAt", "desc")
+                    .limit(1)
+                    .get();
+                
+                const container = document.getElementById('wildlifeUpdates');
+                
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="activity-item" onclick="viewWildlifeUpdate('giraffe')" style="background: var(--card-bg); border-radius: 20px; padding: 16px; border: 1px solid var(--border-light);">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="width: 50px; height: 50px; background: var(--primary-savanna); border-radius: 25px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-giraffe" style="color: white; font-size: 28px;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; margin-bottom: 4px;">Giraffe herd near Olerai House</div>
+                                    <div style="font-size: 12px; color: #666;">Spotted 10 minutes ago</div>
+                                </div>
+                                <div style="margin-left: auto;">
+                                    <span style="background: var(--success-green); color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px;">NEW</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const sighting = snapshot.docs[0].data();
+                const animalIcon = sighting.animal?.toLowerCase().includes('giraffe') ? 'fa-giraffe' : 'fa-paw';
+                
+                container.innerHTML = `
+                    <div class="activity-item" onclick="viewWildlifeUpdate('${snapshot.docs[0].id}')" style="background: var(--card-bg); border-radius: 20px; padding: 16px; border: 1px solid var(--border-light);">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="width: 50px; height: 50px; background: var(--primary-savanna); border-radius: 25px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas ${animalIcon}" style="color: white; font-size: 28px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 4px;">${sighting.animal || 'Wildlife'} spotted ${sighting.location || ''}</div>
+                                <div style="font-size: 12px; color: #666;">${sighting.description || 'Recently spotted'}</div>
+                            </div>
+                            ${sighting.isActive ? '<div style="margin-left: auto;"><span style="background: var(--success-green); color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px;">NEW</span></div>' : ''}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error("Error loading wildlife:", error);
+            }
+        }
+
+        // Navigation function
+        function navigateTo(page) {
+            window.location.href = page + ".html";
+        }
+
+        // Search handler
+        function handleSearch(event) {
+            if (event.key === "Enter") {
+                const query = document.getElementById("searchInput").value.trim();
+                if (query) {
+                    showAlert('Searching for: ' + query, 'info');
+                }
+            }
+        }
+
+        // Room functions
+        function viewRoomDetails(room) {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                showAlert('Please login to view room details', 'error');
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 1500);
+                return;
+            }
+            window.location.href = "room-details.html?room=" + room;
+        }
+
+        function quickBook(room) {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                showAlert('Please login to book a room', 'error');
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 1500);
+                return;
+            }
+            window.location.href = "booking.html?room=" + room;
+        }
+
+        function viewFoodItem(item) {
+            window.location.href = "food.html?item=" + item;
+        }
+
+        function viewActivity(activity) {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                showAlert('Please login to view activities', 'error');
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 1500);
+                return;
+            }
+            window.location.href = "activities.html?activity=" + activity;
+        }
+
+        function viewWildlifeUpdate(animal) {
+            window.location.href = "wildlife.html?animal=" + animal;
+        }
+
+        // Side menu controls
+        const menuBtn = document.getElementById("menuBtn");
+        const sideMenu = document.getElementById("sideMenu");
+        const menuOverlay = document.getElementById("menuOverlay");
+        const closeMenu = document.getElementById("closeMenu");
+
+        menuBtn.addEventListener("click", () => {
+            sideMenu.classList.add("open");
+            menuOverlay.classList.add("show");
+        });
+
+        closeMenu.addEventListener("click", closeSideMenu);
+        menuOverlay.addEventListener("click", closeSideMenu);
+
+        function closeSideMenu() {
+            sideMenu.classList.remove("open");
+            menuOverlay.classList.remove("show");
+        }
+
+        // Initialize
+        checkLoginStatus(); // Check login status on page load
+        loadFeaturedRooms();
+        loadFeaturedFood();
+        loadFeaturedActivities();
+        loadWildlifeUpdates();
+
+        console.log('✅ Firebase initialized with new project:', firebaseConfig.projectId);
+    </script>
+</body>
+</html>

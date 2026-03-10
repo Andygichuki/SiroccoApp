@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Checkout - Siroco Wildlife Sanctuary</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-savanna: #8B6B4D;
+            --secondary-acacia: #5C8D7A;
+            --accent-sunset: #C97C5D;
+            --water-lake: #4A7A9C;
+            --cream-plains: #F5F0E6;
+            --dark-earth: #2C3E4F;
+            --wildlife-gold: #E6B17E;
+            --success-green: #4A7856;
+            --error-red: #C45D5D;
+            --bg-main: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --border-light: #E8E0D5;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-savanna) 0%, var(--secondary-acacia) 100%);
+            color: white;
+            padding: 20px 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-title span {
+            font-size: 12px;
+            display: block;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .cart-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-sunset);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50px;
+            right: 50px;
+            height: 2px;
+            background: var(--border-light);
+            z-index: 1;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            background: var(--bg-main);
+            padding: 0 5px;
+        }
+
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 15px;
+            background: white;
+            border: 2px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .step.active .step-circle {
+            background: var(--secondary-acacia);
+            border-color: var(--secondary-acacia);
+            color: white;
+        }
+
+        .step.completed .step-circle {
+            background: var(--success-green);
+            border-color: var(--success-green);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .step.active .step-label {
+            color: var(--secondary-acacia);
+            font-weight: 600;
+        }
+
+        /* Checkout Sections */
+        .checkout-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--secondary-acacia);
+        }
+
+        .section-title .edit-btn {
+            margin-left: auto;
+            font-size: 13px;
+            color: var(--secondary-acacia);
+            cursor: pointer;
+        }
+
+        /* Order Summary */
+        .order-items {
+            margin-bottom: 15px;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .item-image i {
+            font-size: 24px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .item-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .item-price {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-savanna);
+        }
+
+        .item-price small {
+            font-size: 11px;
+            font-weight: 400;
+            color: #666;
+        }
+
+        .item-quantity {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .order-total {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .total-row.grand-total {
+            font-weight: 700;
+            font-size: 18px;
+            border-top: 1px solid var(--border-light);
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        /* Guest Information */
+        .guest-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-label {
+            width: 100px;
+            color: #666;
+        }
+
+        .info-value {
+            font-weight: 500;
+        }
+
+        /* Payment Methods */
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-method:hover {
+            border-color: var(--secondary-acacia);
+        }
+
+        .payment-method.selected {
+            border-color: var(--secondary-acacia);
+            background: #f0f9f4;
+        }
+
+        .payment-method input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--secondary-acacia);
+        }
+
+        .payment-icon {
+            width: 40px;
+            height: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--secondary-acacia);
+        }
+
+        .payment-info {
+            flex: 1;
+        }
+
+        .payment-name {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .payment-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Card Details Form */
+        .card-details {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .card-details.show {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 12px;
+            color: #999;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 12px 12px 35px;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--secondary-acacia);
+        }
+
+        .card-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-row .form-group {
+            flex: 1;
+        }
+
+        /* M-PESA Section */
+        .mpesa-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .mpesa-section.show {
+            display: block;
+        }
+
+        .mpesa-instruction {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #0d47a1;
+        }
+
+        .mpesa-instruction i {
+            font-size: 24px;
+        }
+
+        /* Test Mode Notice */
+        .test-mode-notice {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .test-mode-notice i {
+            font-size: 24px;
+            color: #856404;
+        }
+
+        .test-mode-notice strong {
+            color: #856404;
+        }
+
+        /* Simulate Payment Button */
+        .simulate-payment-btn {
+            width: 100%;
+            background: var(--wildlife-gold);
+            color: var(--text-dark);
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .simulate-payment-btn:hover {
+            background: #d4a055;
+        }
+
+        /* Promo Code */
+        .promo-code {
+            margin-bottom: 20px;
+        }
+
+        .promo-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .promo-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .promo-input input:focus {
+            outline: none;
+            border-color: var(--secondary-acacia);
+        }
+
+        .apply-btn {
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .apply-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        .promo-message {
+            font-size: 12px;
+            margin-top: 8px;
+            color: var(--success-green);
+            display: none;
+        }
+
+        /* Terms */
+        .terms-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+
+        .terms-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--secondary-acacia);
+        }
+
+        .terms-checkbox span {
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .terms-checkbox a {
+            color: var(--secondary-acacia);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Confirm Button */
+        .confirm-btn {
+            width: 100%;
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .confirm-btn:hover:not(:disabled) {
+            background: var(--primary-savanna);
+            transform: translateY(-2px);
+        }
+
+        .confirm-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Success Animation */
+        .success-animation {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .success-animation i {
+            font-size: 80px;
+            color: var(--success-green);
+            margin-bottom: 20px;
+            animation: bounce 1s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading i {
+            font-size: 40px;
+            color: var(--secondary-acacia);
+            margin-bottom: 15px;
+        }
+
+        /* Alert */
+        .alert {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.success {
+            border-left: 4px solid var(--success-green);
+        }
+
+        .alert.error {
+            border-left: 4px solid var(--error-red);
+        }
+
+        .alert.info {
+            border-left: 4px solid var(--secondary-acacia);
+        }
+
+        @keyframes slideDown {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 80px;
+                opacity: 1;
+            }
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid var(--border-light);
+            padding: 12px 16px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+        }
+
+        .nav-item.active {
+            color: var(--secondary-acacia);
+        }
+
+        .nav-item:hover {
+            color: var(--primary-savanna);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <a href="cart.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="header-title">
+                Checkout
+                <span>Complete your booking</span>
+            </div>
+            <a href="cart.html" class="cart-btn" id="cartBtn">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Progress Steps -->
+        <div class="progress-steps">
+            <div class="step completed" id="step1">
+                <div class="step-circle">✓</div>
+                <div class="step-label">Cart</div>
+            </div>
+            <div class="step active" id="step2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Checkout</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Confirmation</div>
+            </div>
+        </div>
+
+        <!-- Test Mode Notice -->
+        <div class="test-mode-notice">
+            <i class="fas fa-flask"></i>
+            <div>
+                <strong>🔬 Test Mode</strong> - This is a simulated payment. No real money will be charged.
+                Use any test card details or click "Simulate Payment" below.
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading checkout details...</p>
+        </div>
+
+        <!-- Checkout Form (hidden initially) -->
+        <div id="checkoutForm" style="display: none;">
+            <!-- Order Summary -->
+            <div class="checkout-section">
+                <div class="section-title">
+                    <i class="fas fa-shopping-bag"></i>
+                    Order Summary
+                    <span class="edit-btn" onclick="window.location.href='cart.html'">
+                        <i class="fas fa-pencil-alt"></i> Edit
+                    </span>
+                </div>
+                
+                <div class="order-items" id="orderItems"></div>
+
+                <div class="order-total">
+                    <div class="total-row">
+                        <span>Subtotal</span>
+                        <span>KSH <span id="subtotal">0</span></span>
+                    </div>
+                    <div class="total-row">
+                        <span>Tax (16% VAT)</span>
+                        <span>KSH <span id="tax">0</span></span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span>Total</span>
+                        <span>KSH <span id="total">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guest Information -->
+            <div class="checkout-section">
+                <div class="section-title">
+                    <i class="fas fa-user"></i>
+                    Guest Information
+                </div>
+
+                <div class="guest-info" id="guestInfo"></div>
+            </div>
+
+            <!-- Promo Code -->
+            <div class="checkout-section">
+                <div class="section-title">
+                    <i class="fas fa-ticket-alt"></i>
+                    Promo Code
+                </div>
+
+                <div class="promo-code">
+                    <div class="promo-input">
+                        <input type="text" id="promoCode" placeholder="Enter promo code">
+                        <button class="apply-btn" onclick="applyPromo()">Apply</button>
+                    </div>
+                    <div class="promo-message" id="promoMessage"></div>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="checkout-section">
+                <div class="section-title">
+                    <i class="fas fa-credit-card"></i>
+                    Payment Method
+                </div>
+
+                <div class="payment-methods">
+                    <label class="payment-method" onclick="selectPayment('card')">
+                        <input type="radio" name="payment" value="card" checked>
+                        <div class="payment-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="payment-info">
+                            <div class="payment-name">Credit / Debit Card</div>
+                            <div class="payment-desc">Pay with Visa, Mastercard, or American Express</div>
+                        </div>
+                    </label>
+
+                    <div class="card-details" id="cardDetails">
+                        <div class="form-group">
+                            <label>Card Number (test: 4242 4242 4242 4242)</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-credit-card"></i>
+                                <input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242">
+                            </div>
+                        </div>
+                        <div class="card-row">
+                            <div class="form-group">
+                                <label>Expiry Date (test: 12/34)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-calendar"></i>
+                                    <input type="text" id="expiryDate" placeholder="12/34" value="12/34">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>CVV (test: 123)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="text" id="cvv" placeholder="123" value="123">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label class="payment-method" onclick="selectPayment('mpesa')">
+                        <input type="radio" name="payment" value="mpesa">
+                        <div class="payment-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="payment-info">
+                            <div class="payment-name">M-PESA</div>
+                            <div class="payment-desc">Pay with M-PESA mobile money (simulated)</div>
+                        </div>
+                    </label>
+
+                    <div class="mpesa-section" id="mpesaDetails">
+                        <div class="mpesa-instruction">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>In test mode, you will see a simulated M-PESA prompt</span>
+                        </div>
+                        <div class="form-group">
+                            <label>M-PESA Phone Number (test: 0712345678)</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-phone"></i>
+                                <input type="tel" id="mpesaPhone" placeholder="0712345678" value="0712345678">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulate Payment Button (for quick testing) -->
+                <button class="simulate-payment-btn" onclick="simulatePayment()">
+                    <i class="fas fa-magic"></i>
+                    Simulate Successful Payment
+                </button>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="checkout-section">
+                <label class="terms-checkbox">
+                    <input type="checkbox" id="termsAccepted" checked>
+                    <span>
+                        I agree to the 
+                        <a href="#" onclick="showTerms()">Terms of Service</a> and 
+                        <a href="#" onclick="showPolicy()">Cancellation Policy</a>
+                    </span>
+                </label>
+
+                <button class="confirm-btn" onclick="confirmPayment()" id="confirmBtn">
+                    <i class="fas fa-lock"></i>
+                    Confirm & Pay KSH <span id="confirmTotal">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Success Message (hidden by default) -->
+        <div id="successMessage" style="display: none;">
+            <div class="success-animation">
+                <i class="fas fa-check-circle"></i>
+                <h2>Payment Successful!</h2>
+                <p>Your booking has been confirmed.</p>
+                <p style="font-size: 14px; color: #666; margin-top: 10px;">Redirecting to homepage in 3 seconds...</p>
+            </div>
+        </div>
+
+        <!-- Empty Cart Message (hidden by default) -->
+        <div class="empty-state" id="emptyCart" style="display: none; text-align: center; padding: 60px 20px; background: white; border-radius: 20px;">
+            <i class="fas fa-shopping-cart" style="font-size: 64px; color: var(--border-light); margin-bottom: 20px;"></i>
+            <h3>Your cart is empty</h3>
+            <p style="color: #666; margin-bottom: 20px;">Add some items to your cart before checkout</p>
+            <a href="rooms.html" class="apply-btn" style="text-decoration: none; display: inline-block;">Browse Rooms</a>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="rooms.html" class="nav-item">
+            <i class="fas fa-bed"></i>
+            <span>Rooms</span>
+        </a>
+        <a href="food.html" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Food</span>
+        </a>
+        <a href="activities.html" class="nav-item">
+            <i class="fas fa-hiking"></i>
+            <span>Activities</span>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
+            authDomain: "sirocco-6668e.firebaseapp.com",
+            projectId: "sirocco-6668e",
+            storageBucket: "sirocco-6668e.firebasestorage.app",
+            messagingSenderId: "892213068784",
+            appId: "1:892213068784:web:5b4021e7fbe638999e5335",
+            measurementId: "G-BPCVPVC9R7"
+        };
+
+        // Initialize Firebase (removed Firebase Auth)
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global variables
+        let cartItems = [];
+        let currentUser = null;
+        let selectedPayment = 'card';
+        let appliedPromo = null;
+
+        // Promo codes
+        const promoCodes = {
+            'SAFARI10': { discount: 10, type: 'percentage' },
+            'WILDLIFE20': { discount: 20, type: 'percentage' },
+            'WELCOME50': { discount: 50, type: 'fixed' }
+        };
+
+        // Check if user is logged in - using localStorage only
+        function checkAuth() {
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                console.log("✅ User logged in:", currentUser.email);
+                loadCartItems();
+            } else {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('checkoutForm').style.display = 'none';
+                document.getElementById('emptyCart').style.display = 'block';
+                document.querySelector('.empty-state h3').textContent = 'Please Login First';
+                document.querySelector('.empty-state p').textContent = 'You need to be logged in to checkout';
+                document.querySelector('.empty-state a').textContent = 'Go to Login';
+                document.querySelector('.empty-state a').href = 'login.html';
+            }
+        }
+
+        // Load cart items from Firestore
+        async function loadCartItems() {
+            const loading = document.getElementById('loading');
+            const checkoutForm = document.getElementById('checkoutForm');
+            const emptyCart = document.getElementById('emptyCart');
+            
+            try {
+                if (!currentUser) {
+                    throw new Error('No user logged in');
+                }
+
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+
+                loading.style.display = 'none';
+
+                if (snapshot.empty) {
+                    checkoutForm.style.display = 'none';
+                    emptyCart.style.display = 'block';
+                    return;
+                }
+
+                cartItems = [];
+                snapshot.forEach(doc => {
+                    cartItems.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                checkoutForm.style.display = 'block';
+                emptyCart.style.display = 'none';
+                
+                displayOrderSummary();
+                loadGuestInfo();
+                updateCartBadge();
+
+            } catch (error) {
+                console.error("Error loading cart:", error);
+                loading.style.display = 'none';
+                
+                checkoutForm.style.display = 'none';
+                emptyCart.style.display = 'block';
+                document.querySelector('.empty-state h3').textContent = 'Error Loading Cart';
+                document.querySelector('.empty-state p').textContent = error.message;
+            }
+        }
+
+        // Display order summary
+        function displayOrderSummary() {
+            const orderItems = document.getElementById('orderItems');
+            let subtotal = 0;
+            
+            let html = '';
+            cartItems.forEach(item => {
+                let icon = 'fa-box';
+                if (item.type === 'room') icon = 'fa-bed';
+                else if (item.type === 'food') icon = 'fa-utensils';
+                else if (item.type === 'activity') icon = 'fa-hiking';
+                
+                const itemTotal = (item.price || 0) * (item.quantity || 1);
+                subtotal += itemTotal;
+                
+                html += `
+                    <div class="order-item">
+                        <div class="item-image">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="item-details">
+                            <div class="item-name">${item.name || 'Item'}</div>
+                            <div class="item-meta">${item.details || ''}</div>
+                            <div class="item-price">
+                                KSH ${(item.price || 0).toLocaleString()} 
+                                <small>${item.perNight ? '/night' : ''}</small>
+                            </div>
+                        </div>
+                        <div class="item-quantity">x${item.quantity || 1}</div>
+                    </div>
+                `;
+            });
+
+            orderItems.innerHTML = html;
+
+            const tax = Math.round(subtotal * 0.16);
+            const total = subtotal + tax;
+
+            document.getElementById('subtotal').textContent = subtotal.toLocaleString();
+            document.getElementById('tax').textContent = tax.toLocaleString();
+            document.getElementById('total').textContent = total.toLocaleString();
+            document.getElementById('confirmTotal').textContent = total.toLocaleString();
+        }
+
+        // Load guest information
+        async function loadGuestInfo() {
+            try {
+                if (!currentUser) return;
+                
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    document.getElementById('guestInfo').innerHTML = `
+                        <div class="info-row">
+                            <span class="info-label">Name:</span>
+                            <span class="info-value">${userData.fullName || currentUser.fullName || 'Guest'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">${userData.email || currentUser.email}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone:</span>
+                            <span class="info-value">${userData.phone || currentUser.phone || 'Not provided'}</span>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error("Error loading user info:", error);
+            }
+        }
+
+        // Select payment method
+        function selectPayment(method) {
+            selectedPayment = method;
+            
+            document.getElementById('cardDetails').classList.remove('show');
+            document.getElementById('mpesaDetails').classList.remove('show');
+            
+            if (method === 'card') {
+                document.getElementById('cardDetails').classList.add('show');
+            } else if (method === 'mpesa') {
+                document.getElementById('mpesaDetails').classList.add('show');
+            }
+        }
+
+        // Apply promo code
+        function applyPromo() {
+            const code = document.getElementById('promoCode').value.trim().toUpperCase();
+            const promoMessage = document.getElementById('promoMessage');
+            
+            if (!code) {
+                promoMessage.style.display = 'block';
+                promoMessage.style.color = 'var(--error-red)';
+                promoMessage.textContent = 'Please enter a promo code';
+                return;
+            }
+
+            if (promoCodes[code]) {
+                appliedPromo = promoCodes[code];
+                promoMessage.style.display = 'block';
+                promoMessage.style.color = 'var(--success-green)';
+                promoMessage.textContent = `Promo applied! You saved ${promoCodes[code].discount}${promoCodes[code].type === 'percentage' ? '%' : ' KSH'}`;
+                showAlert(`Promo code ${code} applied!`, 'success');
+            } else {
+                promoMessage.style.display = 'block';
+                promoMessage.style.color = 'var(--error-red)';
+                promoMessage.textContent = 'Invalid promo code';
+            }
+        }
+
+        // Simulate payment (quick test)
+        function simulatePayment() {
+            showAlert('✅ Simulated payment successful! Processing your booking...', 'success');
+            setTimeout(() => {
+                processBooking();
+            }, 1500);
+        }
+
+        // Validate form
+        function validateForm() {
+            const termsAccepted = document.getElementById('termsAccepted').checked;
+            return termsAccepted;
+        }
+
+        // Process booking (separated from payment)
+        async function processBooking() {
+            try {
+                const bookings = [];
+                
+                for (const item of cartItems) {
+                    if (item.type === 'room') {
+                        const bookingData = {
+                            userId: currentUser.uid,
+                            userEmail: currentUser.email,
+                            userName: currentUser.fullName || 'Guest',
+                            userPhone: currentUser.phone || '',
+                            roomId: item.roomId,
+                            roomName: item.name,
+                            checkIn: item.checkIn ? new Date(item.checkIn) : new Date(),
+                            checkOut: item.checkOut ? new Date(item.checkOut) : new Date(Date.now() + 86400000),
+                            guests: item.guests || 2,
+                            nights: item.nights || 1,
+                            pricePerNight: item.price,
+                            subtotal: item.price * (item.quantity || 1),
+                            serviceFee: Math.round(item.price * (item.quantity || 1) * 0.1),
+                            totalAmount: item.price * (item.quantity || 1) + Math.round(item.price * (item.quantity || 1) * 0.1),
+                            status: 'confirmed',
+                            paymentStatus: 'paid',
+                            paymentMethod: selectedPayment,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        
+                        const docRef = await db.collection("bookings").add(bookingData);
+                        bookings.push(docRef.id);
+                    }
+                }
+
+                // Clear cart
+                const batch = db.batch();
+                cartItems.forEach(item => {
+                    batch.delete(db.collection("cart").doc(item.id));
+                });
+                await batch.commit();
+
+                // Hide checkout form and show success message
+                document.getElementById('checkoutForm').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                
+                showAlert('✅ Booking confirmed!', 'success');
+
+                // Redirect to index after 3 seconds (keeps user logged in)
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
+
+            } catch (error) {
+                console.error("Booking error:", error);
+                showAlert('Booking failed: ' + error.message, 'error');
+            }
+        }
+
+        // Confirm payment
+        async function confirmPayment() {
+            if (!validateForm()) {
+                showAlert('Please accept the terms and conditions', 'error');
+                return;
+            }
+
+            if (!currentUser) {
+                showAlert('Please login first', 'error');
+                return;
+            }
+
+            const confirmBtn = document.getElementById('confirmBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            showAlert('Processing your payment...', 'info');
+
+            // Simulate payment processing delay
+            setTimeout(async () => {
+                showAlert('✅ Payment successful!', 'success');
+                await processBooking();
+            }, 2000);
+        }
+
+        // Update cart badge
+        async function updateCartBadge() {
+            try {
+                if (!currentUser) return;
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+                
+                document.getElementById('cartBadge').textContent = snapshot.size;
+            } catch (error) {
+                console.error("Error updating cart badge:", error);
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Show terms
+        function showTerms() {
+            showAlert('Terms of Service - In test mode, all bookings are simulated', 'info');
+        }
+
+        function showPolicy() {
+            showAlert('Cancellation Policy - Free cancellation up to 24 hours before check-in', 'info');
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>

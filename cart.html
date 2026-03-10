@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>My Cart - Siroco Wildlife Sanctuary</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-savanna: #8B6B4D;
+            --secondary-acacia: #5C8D7A;
+            --accent-sunset: #C97C5D;
+            --water-lake: #4A7A9C;
+            --cream-plains: #F5F0E6;
+            --dark-earth: #2C3E4F;
+            --wildlife-gold: #E6B17E;
+            --success-green: #4A7856;
+            --error-red: #C45D5D;
+            --bg-main: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --border-light: #E8E0D5;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-savanna) 0%, var(--secondary-acacia) 100%);
+            color: white;
+            padding: 20px 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-title span {
+            font-size: 12px;
+            display: block;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .cart-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-sunset);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .cart-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .cart-header h2 i {
+            color: var(--secondary-acacia);
+            margin-right: 8px;
+        }
+
+        .clear-cart-btn {
+            background: none;
+            border: 1px solid var(--error-red);
+            color: var(--error-red);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .clear-cart-btn:hover {
+            background: var(--error-red);
+            color: white;
+        }
+
+        .cart-items {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
+            position: relative;
+        }
+
+        .item-content {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .item-image i {
+            font-size: 32px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 5px;
+        }
+
+        .item-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .item-category {
+            font-size: 11px;
+            color: var(--secondary-acacia);
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .item-meta {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .item-meta i {
+            color: var(--secondary-acacia);
+            width: 14px;
+        }
+
+        .item-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-savanna);
+        }
+
+        .item-price small {
+            font-size: 12px;
+            font-weight: 400;
+            color: #666;
+        }
+
+        .item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 15px;
+            border: 1px solid var(--border-light);
+            background: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qty-btn:hover:not(:disabled) {
+            background: var(--secondary-acacia);
+            color: white;
+        }
+
+        .qty-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .qty-value {
+            font-size: 16px;
+            font-weight: 600;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        .remove-item {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s;
+        }
+
+        .remove-item:hover {
+            color: var(--error-red);
+        }
+
+        .cart-summary {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
+        }
+
+        .summary-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-title i {
+            color: var(--secondary-acacia);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .summary-row.total {
+            font-weight: 700;
+            font-size: 18px;
+            border-top: 1px solid var(--border-light);
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+
+        .promo-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
+        }
+
+        .promo-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .promo-title i {
+            color: var(--secondary-acacia);
+        }
+
+        .promo-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .promo-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .promo-input input:focus {
+            outline: none;
+            border-color: var(--secondary-acacia);
+        }
+
+        .apply-btn {
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .apply-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        .promo-message {
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkout-btn:hover:not(:disabled) {
+            background: var(--primary-savanna);
+            transform: translateY(-2px);
+        }
+
+        .checkout-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .empty-cart i {
+            font-size: 64px;
+            color: var(--border-light);
+            margin-bottom: 20px;
+        }
+
+        .empty-cart h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-cart p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .shop-btn {
+            display: inline-block;
+            background: var(--secondary-acacia);
+            color: white;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin: 5px;
+        }
+
+        .shop-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .error-state i {
+            font-size: 64px;
+            color: var(--error-red);
+            margin-bottom: 20px;
+        }
+
+        .error-state h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .error-state p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .rules-hint {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .rules-hint code {
+            display: block;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-size: 11px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading i {
+            font-size: 40px;
+            color: var(--secondary-acacia);
+            margin-bottom: 15px;
+        }
+
+        .alert {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.success {
+            border-left: 4px solid var(--success-green);
+        }
+
+        .alert.error {
+            border-left: 4px solid var(--error-red);
+        }
+
+        @keyframes slideDown {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 80px;
+                opacity: 1;
+            }
+        }
+
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid var(--border-light);
+            padding: 12px 16px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+        }
+
+        .nav-item.active {
+            color: var(--secondary-acacia);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <a href="javascript:history.back()" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="header-title">
+                Shopping Cart
+                <span>Your selected items</span>
+            </div>
+            <a href="cart.html" class="cart-btn" id="cartBtn">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading your cart...</p>
+        </div>
+
+        <!-- Cart Content (hidden initially) -->
+        <div id="cartContent" style="display: none;">
+            <div class="cart-header">
+                <h2><i class="fas fa-shopping-cart"></i> Your Items</h2>
+                <button class="clear-cart-btn" onclick="clearCart()">
+                    <i class="fas fa-trash-alt"></i> Clear Cart
+                </button>
+            </div>
+
+            <div class="cart-items" id="cartItems"></div>
+
+            <div class="promo-section">
+                <div class="promo-title">
+                    <i class="fas fa-ticket-alt"></i>
+                    Have a promo code?
+                </div>
+                <div class="promo-input">
+                    <input type="text" id="promoCode" placeholder="Enter code">
+                    <button class="apply-btn" onclick="applyPromo()">Apply</button>
+                </div>
+                <div class="promo-message" id="promoMessage"></div>
+            </div>
+
+            <div class="cart-summary">
+                <div class="summary-title">
+                    <i class="fas fa-calculator"></i>
+                    Order Summary
+                </div>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>KSH <span id="subtotal">0</span></span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax (16% VAT)</span>
+                    <span>KSH <span id="tax">0</span></span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>KSH <span id="total">0</span></span>
+                </div>
+            </div>
+
+            <button class="checkout-btn" onclick="checkout()" id="checkoutBtn">
+                <i class="fas fa-lock"></i>
+                Proceed to Checkout
+            </button>
+        </div>
+
+        <!-- Empty Cart -->
+        <div class="empty-cart" id="emptyCart" style="display: none;">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>Your cart is empty</h3>
+            <p>Looks like you haven't added any items yet</p>
+            <a href="rooms.html" class="shop-btn">
+                <i class="fas fa-bed"></i> Browse Rooms
+            </a>
+            <a href="food.html" class="shop-btn" style="background: var(--primary-savanna);">
+                <i class="fas fa-utensils"></i> Browse Food
+            </a>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-state" id="errorState" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Error Loading Cart</h3>
+            <p id="errorMessage"></p>
+            
+            <div class="rules-hint" id="rulesHint" style="display: none;">
+                <strong>⚠️ Firestore Rules Issue</strong>
+                <p>Update your Firestore rules to allow cart access:</p>
+                <code>
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /cart/{document} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+                </code>
+                <button class="shop-btn" onclick="window.open('https://console.firebase.google.com/project/sirocco-6668e/firestore/rules', '_blank')">
+                    <i class="fas fa-external-link-alt"></i> Open Firebase Rules
+                </button>
+            </div>
+            
+            <button class="shop-btn" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i> Try Again
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="rooms.html" class="nav-item">
+            <i class="fas fa-bed"></i>
+            <span>Rooms</span>
+        </a>
+        <a href="food.html" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Food</span>
+        </a>
+        <a href="activities.html" class="nav-item">
+            <i class="fas fa-hiking"></i>
+            <span>Activities</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
+            authDomain: "sirocco-6668e.firebaseapp.com",
+            projectId: "sirocco-6668e",
+            storageBucket: "sirocco-6668e.firebasestorage.app",
+            messagingSenderId: "892213068784",
+            appId: "1:892213068784:web:5b4021e7fbe638999e5335",
+            measurementId: "G-BPCVPVC9R7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Global variables
+        let cartItems = [];
+        let currentUser = null;
+
+        // Check if user is logged in
+        function checkAuth() {
+            const user = localStorage.getItem('currentUser');
+            if (user) {
+                currentUser = JSON.parse(user);
+                // Sign in to Firebase Auth with the same UID
+                signInToFirebase();
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Sign in to Firebase Auth (required for security rules)
+        async function signInToFirebase() {
+            try {
+                // Use custom auth or just load cart directly
+                // For now, we'll try to load cart and show rules hint if it fails
+                loadCart();
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        }
+
+        // Load cart from Firestore
+        async function loadCart() {
+            const loading = document.getElementById('loading');
+            const cartContent = document.getElementById('cartContent');
+            const emptyCart = document.getElementById('emptyCart');
+            const errorState = document.getElementById('errorState');
+            const errorMessage = document.getElementById('errorMessage');
+            const rulesHint = document.getElementById('rulesHint');
+            
+            try {
+                console.log("🔄 Loading cart for user:", currentUser.uid);
+                
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+                
+                console.log(`📊 Found ${snapshot.size} items in cart`);
+                
+                loading.style.display = 'none';
+
+                if (snapshot.empty) {
+                    cartContent.style.display = 'none';
+                    emptyCart.style.display = 'block';
+                    errorState.style.display = 'none';
+                    updateCartBadge(0);
+                    return;
+                }
+
+                cartItems = [];
+                snapshot.forEach(doc => {
+                    cartItems.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                cartContent.style.display = 'block';
+                emptyCart.style.display = 'none';
+                errorState.style.display = 'none';
+                
+                displayCartItems();
+                updateCartSummary();
+                updateCartBadge(cartItems.length);
+
+            } catch (error) {
+                console.error("❌ Error loading cart:", error);
+                loading.style.display = 'none';
+                
+                errorMessage.textContent = error.message;
+                
+                if (error.code === 'permission-denied') {
+                    rulesHint.style.display = 'block';
+                } else {
+                    rulesHint.style.display = 'none';
+                }
+                
+                cartContent.style.display = 'none';
+                emptyCart.style.display = 'none';
+                errorState.style.display = 'block';
+            }
+        }
+
+        // Display cart items
+        function displayCartItems() {
+            const cartItemsDiv = document.getElementById('cartItems');
+            
+            let html = '';
+            cartItems.forEach(item => {
+                let icon = 'fa-box';
+                if (item.type === 'room') icon = 'fa-bed';
+                else if (item.type === 'food') icon = 'fa-utensils';
+                else if (item.type === 'activity') icon = 'fa-hiking';
+                
+                html += `
+                    <div class="cart-item" id="item-${item.id}">
+                        <button class="remove-item" onclick="removeFromCart('${item.id}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <div class="item-content">
+                            <div class="item-image">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                            <div class="item-details">
+                                <div class="item-header">
+                                    <div>
+                                        <h3 class="item-name">${item.name || 'Item'}</h3>
+                                        <div class="item-category">${(item.type || 'item').toUpperCase()}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="item-meta">
+                                    ${item.details ? `<span><i class="fas fa-info-circle"></i> ${item.details}</span>` : ''}
+                                </div>
+                                
+                                <div class="item-price">
+                                    KSH ${(item.price || 0).toLocaleString()} 
+                                    <small>${item.perNight ? '/night' : ''}</small>
+                                </div>
+                                
+                                <div class="item-quantity">
+                                    <button class="qty-btn" onclick="updateQuantity('${item.id}', -1)" ${item.quantity <= 1 ? 'disabled' : ''}>
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <span class="qty-value">${item.quantity || 1}</span>
+                                    <button class="qty-btn" onclick="updateQuantity('${item.id}', 1)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            cartItemsDiv.innerHTML = html;
+        }
+
+        // Update quantity
+        async function updateQuantity(itemId, change) {
+            const item = cartItems.find(i => i.id === itemId);
+            if (!item) return;
+
+            const newQuantity = (item.quantity || 1) + change;
+            if (newQuantity < 1) return;
+
+            try {
+                await db.collection("cart").doc(itemId).update({
+                    quantity: newQuantity
+                });
+
+                item.quantity = newQuantity;
+                
+                const qtySpan = document.querySelector(`#item-${itemId} .qty-value`);
+                if (qtySpan) qtySpan.textContent = newQuantity;
+                
+                const minusBtn = document.querySelector(`#item-${itemId} .qty-btn:first-child`);
+                if (minusBtn) minusBtn.disabled = newQuantity <= 1;
+                
+                updateCartSummary();
+
+            } catch (error) {
+                console.error("Error updating quantity:", error);
+                showAlert('Error updating quantity', 'error');
+            }
+        }
+
+        // Remove from cart
+        async function removeFromCart(itemId) {
+            if (!confirm('Remove this item from cart?')) return;
+
+            try {
+                await db.collection("cart").doc(itemId).delete();
+                
+                cartItems = cartItems.filter(i => i.id !== itemId);
+                
+                document.getElementById(`item-${itemId}`).remove();
+                
+                updateCartSummary();
+                updateCartBadge(cartItems.length);
+                
+                showAlert('Item removed from cart', 'success');
+                
+                if (cartItems.length === 0) {
+                    document.getElementById('cartContent').style.display = 'none';
+                    document.getElementById('emptyCart').style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error("Error removing item:", error);
+                showAlert('Error removing item', 'error');
+            }
+        }
+
+        // Clear entire cart
+        async function clearCart() {
+            if (!confirm('Are you sure you want to clear your entire cart?')) return;
+
+            try {
+                const batch = db.batch();
+                cartItems.forEach(item => {
+                    batch.delete(db.collection("cart").doc(item.id));
+                });
+                await batch.commit();
+
+                cartItems = [];
+                document.getElementById('cartContent').style.display = 'none';
+                document.getElementById('emptyCart').style.display = 'block';
+                updateCartBadge(0);
+                
+                showAlert('Cart cleared', 'success');
+
+            } catch (error) {
+                console.error("Error clearing cart:", error);
+                showAlert('Error clearing cart', 'error');
+            }
+        }
+
+        // Update cart summary
+        function updateCartSummary() {
+            const subtotal = cartItems.reduce((sum, item) => {
+                return sum + ((item.price || 0) * (item.quantity || 1));
+            }, 0);
+            
+            const tax = Math.round(subtotal * 0.16);
+            const total = subtotal + tax;
+
+            document.getElementById('subtotal').textContent = subtotal.toLocaleString();
+            document.getElementById('tax').textContent = tax.toLocaleString();
+            document.getElementById('total').textContent = total.toLocaleString();
+        }
+
+        // Apply promo code
+        function applyPromo() {
+            const code = document.getElementById('promoCode').value.trim().toUpperCase();
+            const promoMessage = document.getElementById('promoMessage');
+            
+            if (!code) {
+                promoMessage.style.display = 'block';
+                promoMessage.style.color = 'var(--error-red)';
+                promoMessage.textContent = 'Please enter a promo code';
+                return;
+            }
+
+            // Simple promo codes for demo
+            const promos = {
+                'SAFARI10': 10,
+                'WILDLIFE20': 20,
+                'WELCOME50': 50
+            };
+
+            if (promos[code]) {
+                promoMessage.style.display = 'block';
+                promoMessage.style.color = 'var(--success-green)';
+                promoMessage.textContent = `Promo applied! You saved ${promos[code]}%`;
+                showAlert(`Promo code ${code} applied!`, 'success');
+            } else {
+                promoMessage.style.display = 'block';
+                promoMessage.style.color = 'var(--error-red)';
+                promoMessage.textContent = 'Invalid promo code';
+            }
+        }
+
+        // Checkout
+        function checkout() {
+            if (cartItems.length === 0) {
+                showAlert('Your cart is empty', 'error');
+                return;
+            }
+
+            localStorage.setItem('checkoutItems', JSON.stringify(cartItems));
+            window.location.href = 'checkout.html';
+        }
+
+        // Update cart badge
+        function updateCartBadge(count) {
+            document.getElementById('cartBadge').textContent = count;
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>

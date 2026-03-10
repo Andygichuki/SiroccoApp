@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Settings - Siroco Wildlife Sanctuary</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-savanna: #8B6B4D;
+            --secondary-acacia: #5C8D7A;
+            --accent-sunset: #C97C5D;
+            --water-lake: #4A7A9C;
+            --cream-plains: #F5F0E6;
+            --dark-earth: #2C3E4F;
+            --wildlife-gold: #E6B17E;
+            --success-green: #4A7856;
+            --error-red: #C45D5D;
+            --bg-main: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --border-light: #E8E0D5;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-savanna) 0%, var(--secondary-acacia) 100%);
+            color: white;
+            padding: 20px 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-title span {
+            font-size: 12px;
+            display: block;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .cart-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-sunset);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        /* Cart Summary Banner */
+        .cart-summary-banner {
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            color: white;
+            border-radius: 15px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .cart-summary-banner i {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .cart-summary-banner .cart-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-summary-banner .cart-total {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .view-cart-link {
+            background: white;
+            color: var(--secondary-acacia);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* Settings Sections */
+        .settings-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-dark);
+        }
+
+        .section-title i {
+            color: var(--secondary-acacia);
+        }
+
+        .section-desc {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        /* Settings Items */
+        .settings-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item-icon {
+            width: 40px;
+            height: 40px;
+            background: #f0f9f4;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-acacia);
+            font-size: 20px;
+            margin-right: 15px;
+        }
+
+        .settings-item-content {
+            flex: 1;
+        }
+
+        .settings-item-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .settings-item-subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .settings-item-value {
+            color: var(--secondary-acacia);
+            font-weight: 500;
+            margin-right: 10px;
+        }
+
+        .settings-item-arrow {
+            color: #999;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--secondary-acacia);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Radio Group */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .radio-item.selected {
+            border-color: var(--secondary-acacia);
+            background: #f0f9f4;
+        }
+
+        .radio-item input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+            accent-color: var(--secondary-acacia);
+        }
+
+        .radio-content {
+            flex: 1;
+        }
+
+        .radio-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .radio-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-group label i {
+            color: var(--secondary-acacia);
+            margin-right: 5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 12px;
+            color: #999;
+        }
+
+        .input-wrapper input,
+        .input-wrapper select {
+            width: 100%;
+            padding: 12px 12px 12px 35px;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper select:focus {
+            outline: none;
+            border-color: var(--secondary-acacia);
+            background: white;
+        }
+
+        .input-wrapper select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        /* Button */
+        .save-btn {
+            width: 100%;
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .save-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Danger Zone */
+        .danger-zone {
+            background: #fff5f5;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #fcc;
+        }
+
+        .danger-title {
+            color: var(--error-red);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .danger-title i {
+            color: var(--error-red);
+        }
+
+        .danger-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #fcc;
+        }
+
+        .danger-item:last-child {
+            border-bottom: none;
+        }
+
+        .danger-item-info h4 {
+            font-size: 15px;
+            margin-bottom: 3px;
+        }
+
+        .danger-item-info p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .danger-btn {
+            background: white;
+            color: var(--error-red);
+            border: 1px solid var(--error-red);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .danger-btn:hover {
+            background: var(--error-red);
+            color: white;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading i {
+            font-size: 40px;
+            color: var(--secondary-acacia);
+            margin-bottom: 15px;
+        }
+
+        /* Alert */
+        .alert {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.success {
+            border-left: 4px solid var(--success-green);
+        }
+
+        .alert.error {
+            border-left: 4px solid var(--error-red);
+        }
+
+        .alert.info {
+            border-left: 4px solid var(--secondary-acacia);
+        }
+
+        @keyframes slideDown {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 80px;
+                opacity: 1;
+            }
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid var(--border-light);
+            padding: 12px 16px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+        }
+
+        .nav-item.active {
+            color: var(--secondary-acacia);
+        }
+
+        .nav-item:hover {
+            color: var(--primary-savanna);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <a href="profile.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="header-title">
+                Settings
+                <span>Preferences & options</span>
+            </div>
+            <a href="cart.html" class="cart-btn" id="cartBtn">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Cart Summary Banner -->
+        <div id="cartSummaryBanner" class="cart-summary-banner" onclick="window.location.href='cart.html'" style="display: none;">
+            <div class="cart-info">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cartItemCount">0</span> items in cart • 
+                <span class="cart-total">KSH <span id="cartTotal">0</span></span>
+            </div>
+            <span class="view-cart-link">View Cart →</span>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading settings...</p>
+        </div>
+
+        <!-- Settings Content (hidden initially) -->
+        <div id="settingsContent" style="display: none;">
+            <!-- Account Settings -->
+            <div class="settings-section">
+                <div class="section-title">
+                    <i class="fas fa-user-circle"></i>
+                    Account Settings
+                </div>
+                
+                <div class="settings-item" onclick="openModal('profileModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-user-edit"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Profile Information</div>
+                        <div class="settings-item-subtitle">Update your personal details</div>
+                    </div>
+                    <span class="settings-item-value" id="profileEmail"></span>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openModal('passwordModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Change Password</div>
+                        <div class="settings-item-subtitle">Update your password regularly</div>
+                    </div>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openModal('emailModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Email Address</div>
+                        <div class="settings-item-subtitle">Change your email</div>
+                    </div>
+                    <span class="settings-item-value" id="currentEmail"></span>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openModal('phoneModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Phone Number</div>
+                        <div class="settings-item-subtitle">Update your contact number</div>
+                    </div>
+                    <span class="settings-item-value" id="currentPhone"></span>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="settings-section">
+                <div class="section-title">
+                    <i class="fas fa-sliders-h"></i>
+                    Preferences
+                </div>
+
+                <div class="settings-item" onclick="openModal('languageModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Language</div>
+                        <div class="settings-item-subtitle">Choose your preferred language</div>
+                    </div>
+                    <span class="settings-item-value" id="currentLanguage">English</span>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openModal('currencyModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Currency</div>
+                        <div class="settings-item-subtitle">Display prices in</div>
+                    </div>
+                    <span class="settings-item-value" id="currentCurrency">KES</span>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+
+                <div class="settings-item">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Notifications</div>
+                        <div class="settings-item-subtitle">Receive updates and offers</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notifications" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="settings-item">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-envelope-open-text"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Email Newsletter</div>
+                        <div class="settings-item-subtitle">Get travel tips and exclusive offers</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="newsletter" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Privacy & Security -->
+            <div class="settings-section">
+                <div class="section-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Privacy & Security
+                </div>
+
+                <div class="settings-item" onclick="openModal('privacyModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-user-secret"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Privacy Settings</div>
+                        <div class="settings-item-subtitle">Control your data</div>
+                    </div>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+
+                <div class="settings-item">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-fingerprint"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Two-Factor Authentication</div>
+                        <div class="settings-item-subtitle">Add extra security to your account</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="twoFactor">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="settings-item" onclick="openModal('sessionsModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Active Sessions</div>
+                        <div class="settings-item-subtitle">Manage where you're logged in</div>
+                    </div>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+            </div>
+
+            <!-- App Settings -->
+            <div class="settings-section">
+                <div class="section-title">
+                    <i class="fas fa-cog"></i>
+                    App Settings
+                </div>
+
+                <div class="settings-item" onclick="openModal('themeModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Theme</div>
+                        <div class="settings-item-subtitle">Light / Dark / System default</div>
+                    </div>
+                    <span class="settings-item-value" id="currentTheme">Light</span>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+
+                <div class="settings-item">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-wifi"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Auto-download over Wi-Fi only</div>
+                        <div class="settings-item-subtitle">Save mobile data</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="wifiOnly" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="settings-item" onclick="openModal('cacheModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Clear Cache</div>
+                        <div class="settings-item-subtitle">Free up storage space</div>
+                    </div>
+                    <span class="settings-item-value">12.5 MB</span>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+            </div>
+
+            <!-- Support -->
+            <div class="settings-section">
+                <div class="section-title">
+                    <i class="fas fa-headset"></i>
+                    Support
+                </div>
+
+                <div class="settings-item" onclick="openModal('helpModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Help Center</div>
+                        <div class="settings-item-subtitle">Get help with your account</div>
+                    </div>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openModal('feedbackModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">Send Feedback</div>
+                        <div class="settings-item-subtitle">Help us improve</div>
+                    </div>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+
+                <div class="settings-item" onclick="openModal('aboutModal')">
+                    <div class="settings-item-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="settings-item-content">
+                        <div class="settings-item-title">About</div>
+                        <div class="settings-item-subtitle">App version 1.0.0</div>
+                    </div>
+                    <i class="fas fa-chevron-right settings-item-arrow"></i>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="danger-zone">
+                <div class="danger-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Danger Zone
+                </div>
+
+                <div class="danger-item">
+                    <div class="danger-item-info">
+                        <h4>Logout</h4>
+                        <p>Sign out of your account</p>
+                    </div>
+                    <button class="danger-btn" onclick="logout()">Logout</button>
+                </div>
+
+                <div class="danger-item">
+                    <div class="danger-item-info">
+                        <h4>Delete Account</h4>
+                        <p>Permanently delete your account and all data</p>
+                    </div>
+                    <button class="danger-btn" onclick="confirmDelete()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Profile Edit Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Profile</h3>
+                <button class="modal-close" onclick="closeModal('profileModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="modalFullName" placeholder="Enter your full name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-tag"></i>
+                        <input type="text" id="modalDisplayName" placeholder="How should we call you?">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Bio</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-align-left"></i>
+                        <textarea id="modalBio" placeholder="Tell us a bit about yourself" rows="3" style="padding-left: 35px;"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeModal('profileModal')">Cancel</button>
+                <button class="save-btn" onclick="saveProfile()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Change Modal -->
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Change Password</h3>
+                <button class="modal-close" onclick="closeModal('passwordModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="currentPwd" placeholder="Enter current password">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="newPwd" placeholder="Enter new password">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="confirmPwd" placeholder="Confirm new password">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeModal('passwordModal')">Cancel</button>
+                <button class="save-btn" onclick="changePassword()">Update Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language Modal -->
+    <div class="modal-overlay" id="languageModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Select Language</h3>
+                <button class="modal-close" onclick="closeModal('languageModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="radio-group">
+                    <label class="radio-item selected" onclick="selectLanguage('en')">
+                        <input type="radio" name="language" value="en" checked>
+                        <div class="radio-content">
+                            <div class="radio-title">English</div>
+                            <div class="radio-desc">Default language</div>
+                        </div>
+                    </label>
+                    <label class="radio-item" onclick="selectLanguage('sw')">
+                        <input type="radio" name="language" value="sw">
+                        <div class="radio-content">
+                            <div class="radio-title">Kiswahili</div>
+                            <div class="radio-desc">Swahili language</div>
+                        </div>
+                    </label>
+                    <label class="radio-item" onclick="selectLanguage('fr')">
+                        <input type="radio" name="language" value="fr">
+                        <div class="radio-content">
+                            <div class="radio-title">French</div>
+                            <div class="radio-desc">Français</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeModal('languageModal')">Cancel</button>
+                <button class="save-btn" onclick="saveLanguage()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Currency Modal -->
+    <div class="modal-overlay" id="currencyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Select Currency</h3>
+                <button class="modal-close" onclick="closeModal('currencyModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="radio-group">
+                    <label class="radio-item selected" onclick="selectCurrency('KES')">
+                        <input type="radio" name="currency" value="KES" checked>
+                        <div class="radio-content">
+                            <div class="radio-title">KES - Kenyan Shilling</div>
+                            <div class="radio-desc">Local currency</div>
+                        </div>
+                    </label>
+                    <label class="radio-item" onclick="selectCurrency('USD')">
+                        <input type="radio" name="currency" value="USD">
+                        <div class="radio-content">
+                            <div class="radio-title">USD - US Dollar</div>
+                            <div class="radio-desc">$</div>
+                        </div>
+                    </label>
+                    <label class="radio-item" onclick="selectCurrency('EUR')">
+                        <input type="radio" name="currency" value="EUR">
+                        <div class="radio-content">
+                            <div class="radio-title">EUR - Euro</div>
+                            <div class="radio-desc">€</div>
+                        </div>
+                    </label>
+                    <label class="radio-item" onclick="selectCurrency('GBP')">
+                        <input type="radio" name="currency" value="GBP">
+                        <div class="radio-content">
+                            <div class="radio-title">GBP - British Pound</div>
+                            <div class="radio-desc">£</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeModal('currencyModal')">Cancel</button>
+                <button class="save-btn" onclick="saveCurrency()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Modal -->
+    <div class="modal-overlay" id="themeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Select Theme</h3>
+                <button class="modal-close" onclick="closeModal('themeModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="radio-group">
+                    <label class="radio-item selected" onclick="selectTheme('light')">
+                        <input type="radio" name="theme" value="light" checked>
+                        <div class="radio-content">
+                            <div class="radio-title">Light Mode</div>
+                            <div class="radio-desc">Default bright theme</div>
+                        </div>
+                    </label>
+                    <label class="radio-item" onclick="selectTheme('dark')">
+                        <input type="radio" name="theme" value="dark">
+                        <div class="radio-content">
+                            <div class="radio-title">Dark Mode</div>
+                            <div class="radio-desc">Easy on the eyes at night</div>
+                        </div>
+                    </label>
+                    <label class="radio-item" onclick="selectTheme('system')">
+                        <input type="radio" name="theme" value="system">
+                        <div class="radio-content">
+                            <div class="radio-title">System Default</div>
+                            <div class="radio-desc">Follow your device settings</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeModal('themeModal')">Cancel</button>
+                <button class="save-btn" onclick="saveTheme()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="rooms.html" class="nav-item">
+            <i class="fas fa-bed"></i>
+            <span>Rooms</span>
+        </a>
+        <a href="food.html" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Food</span>
+        </a>
+        <a href="activities.html" class="nav-item">
+            <i class="fas fa-hiking"></i>
+            <span>Activities</span>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
+            authDomain: "sirocco-6668e.firebaseapp.com",
+            projectId: "sirocco-6668e",
+            storageBucket: "sirocco-6668e.firebasestorage.app",
+            messagingSenderId: "892213068784",
+            appId: "1:892213068784:web:5b4021e7fbe638999e5335",
+            measurementId: "G-BPCVPVC9R7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global variables
+        let currentUser = null;
+        let userSettings = {
+            language: 'en',
+            currency: 'KES',
+            theme: 'light',
+            notifications: true,
+            newsletter: true,
+            twoFactor: false,
+            wifiOnly: true
+        };
+
+        // Check if user is logged in
+        function checkAuth() {
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                console.log("✅ User logged in:", currentUser.email);
+                loadUserSettings();
+                loadCartSummary();
+                loadCartCount();
+                return true;
+            } else {
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        // Load user settings
+        async function loadUserSettings() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('settingsContent').style.display = 'block';
+
+            try {
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    
+                    // Update display
+                    document.getElementById('profileEmail').textContent = currentUser.email;
+                    document.getElementById('currentEmail').textContent = currentUser.email;
+                    
+                    const phone = data.PhoneNumber || currentUser.phone || 'Not set';
+                    document.getElementById('currentPhone').textContent = phone;
+                    
+                    // Modal fields
+                    document.getElementById('modalFullName').value = data.fullName || currentUser.fullName || '';
+                    document.getElementById('modalDisplayName').value = currentUser.fullName || '';
+                    document.getElementById('modalBio').value = data.bio || '';
+                    
+                    // Load settings if they exist
+                    if (data.settings) {
+                        userSettings = { ...userSettings, ...data.settings };
+                        applySettings();
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading user settings:", error);
+            }
+        }
+
+        // Apply settings to UI
+        function applySettings() {
+            document.getElementById('notifications').checked = userSettings.notifications;
+            document.getElementById('newsletter').checked = userSettings.newsletter;
+            document.getElementById('twoFactor').checked = userSettings.twoFactor;
+            document.getElementById('wifiOnly').checked = userSettings.wifiOnly;
+            
+            document.getElementById('currentLanguage').textContent = 
+                userSettings.language === 'en' ? 'English' : 
+                userSettings.language === 'sw' ? 'Kiswahili' : 'French';
+            
+            document.getElementById('currentCurrency').textContent = userSettings.currency;
+            document.getElementById('currentTheme').textContent = 
+                userSettings.theme === 'light' ? 'Light' : 
+                userSettings.theme === 'dark' ? 'Dark' : 'System';
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Save profile
+        async function saveProfile() {
+            const fullName = document.getElementById('modalFullName').value.trim();
+            const displayName = document.getElementById('modalDisplayName').value.trim();
+            const bio = document.getElementById('modalBio').value.trim();
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    fullName: fullName,
+                    displayName: displayName,
+                    bio: bio,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Update localStorage
+                currentUser.fullName = fullName;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                showAlert('Profile updated successfully!', 'success');
+                closeModal('profileModal');
+
+            } catch (error) {
+                console.error("Error saving profile:", error);
+                showAlert('Error saving profile', 'error');
+            }
+        }
+
+        // Change password
+        async function changePassword() {
+            const currentPwd = document.getElementById('currentPwd').value;
+            const newPwd = document.getElementById('newPwd').value;
+            const confirmPwd = document.getElementById('confirmPwd').value;
+
+            if (!currentPwd || !newPwd || !confirmPwd) {
+                showAlert('Please fill all fields', 'error');
+                return;
+            }
+
+            if (newPwd !== confirmPwd) {
+                showAlert('New passwords do not match', 'error');
+                return;
+            }
+
+            if (newPwd.length < 6) {
+                showAlert('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            try {
+                // Verify current password from Firestore
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                const userData = userDoc.data();
+
+                if (userData.password !== currentPwd) {
+                    showAlert('Current password is incorrect', 'error');
+                    return;
+                }
+
+                await db.collection('users').doc(currentUser.uid).update({
+                    password: newPwd
+                });
+
+                // Update localStorage
+                currentUser.password = newPwd;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+                showAlert('Password updated successfully!', 'success');
+                closeModal('passwordModal');
+                
+                // Clear fields
+                document.getElementById('currentPwd').value = '';
+                document.getElementById('newPwd').value = '';
+                document.getElementById('confirmPwd').value = '';
+
+            } catch (error) {
+                console.error("Error changing password:", error);
+                showAlert('Error changing password', 'error');
+            }
+        }
+
+        // Language selection
+        function selectLanguage(lang) {
+            document.querySelectorAll('#languageModal .radio-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        function saveLanguage() {
+            const selected = document.querySelector('#languageModal input[name="language"]:checked').value;
+            userSettings.language = selected;
+            document.getElementById('currentLanguage').textContent = 
+                selected === 'en' ? 'English' : selected === 'sw' ? 'Kiswahili' : 'French';
+            saveSettings();
+            closeModal('languageModal');
+        }
+
+        // Currency selection
+        function selectCurrency(curr) {
+            document.querySelectorAll('#currencyModal .radio-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        function saveCurrency() {
+            const selected = document.querySelector('#currencyModal input[name="currency"]:checked').value;
+            userSettings.currency = selected;
+            document.getElementById('currentCurrency').textContent = selected;
+            saveSettings();
+            closeModal('currencyModal');
+        }
+
+        // Theme selection
+        function selectTheme(theme) {
+            document.querySelectorAll('#themeModal .radio-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        function saveTheme() {
+            const selected = document.querySelector('#themeModal input[name="theme"]:checked').value;
+            userSettings.theme = selected;
+            document.getElementById('currentTheme').textContent = 
+                selected === 'light' ? 'Light' : selected === 'dark' ? 'Dark' : 'System';
+            
+            // Apply theme (you can implement actual theme switching here)
+            if (selected === 'dark') {
+                document.body.style.backgroundColor = '#1a1a1a';
+                document.body.style.color = '#f0f0f0';
+            } else {
+                document.body.style.backgroundColor = 'var(--bg-main)';
+                document.body.style.color = 'var(--text-dark)';
+            }
+            
+            saveSettings();
+            closeModal('themeModal');
+        }
+
+        // Save all settings to Firestore
+        async function saveSettings() {
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    settings: userSettings,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showAlert('Settings saved!', 'success');
+            } catch (error) {
+                console.error("Error saving settings:", error);
+            }
+        }
+
+        // Toggle listeners
+        document.getElementById('notifications').addEventListener('change', function(e) {
+            userSettings.notifications = e.target.checked;
+            saveSettings();
+        });
+
+        document.getElementById('newsletter').addEventListener('change', function(e) {
+            userSettings.newsletter = e.target.checked;
+            saveSettings();
+        });
+
+        document.getElementById('twoFactor').addEventListener('change', function(e) {
+            userSettings.twoFactor = e.target.checked;
+            saveSettings();
+            showAlert(e.target.checked ? 'Two-factor authentication enabled' : 'Two-factor authentication disabled', 'info');
+        });
+
+        document.getElementById('wifiOnly').addEventListener('change', function(e) {
+            userSettings.wifiOnly = e.target.checked;
+            saveSettings();
+        });
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('rememberedUser');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Delete account
+        function confirmDelete() {
+            if (confirm('⚠️ WARNING: This will permanently delete your account and all data. Are you absolutely sure?')) {
+                deleteAccount();
+            }
+        }
+
+        async function deleteAccount() {
+            try {
+                // Delete user data
+                await db.collection('users').doc(currentUser.uid).delete();
+
+                // Delete user's bookings
+                const bookings = await db.collection("bookings")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+                
+                const batch = db.batch();
+                bookings.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+
+                // Clear localStorage
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('rememberedUser');
+
+                showAlert('Account deleted successfully', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+
+            } catch (error) {
+                console.error("Error deleting account:", error);
+                showAlert('Error deleting account', 'error');
+            }
+        }
+
+        // Load cart summary
+        async function loadCartSummary() {
+            if (!currentUser) return;
+            
+            try {
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+
+                if (!snapshot.empty) {
+                    let total = 0;
+                    snapshot.forEach(doc => {
+                        const item = doc.data();
+                        const price = item.price || 0;
+                        const quantity = item.quantity || 1;
+                        total += price * quantity;
+                    });
+
+                    document.getElementById('cartSummaryBanner').style.display = 'flex';
+                    document.getElementById('cartItemCount').textContent = snapshot.size;
+                    document.getElementById('cartTotal').textContent = total.toLocaleString();
+                }
+            } catch (error) {
+                console.error("Error loading cart summary:", error);
+            }
+        }
+
+        // Load cart count
+        async function loadCartCount() {
+            if (!currentUser) {
+                document.getElementById('cartBadge').textContent = '0';
+                return;
+            }
+            
+            try {
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+                
+                document.getElementById('cartBadge').textContent = snapshot.size;
+            } catch (error) {
+                console.error("Error loading cart count:", error);
+                document.getElementById('cartBadge').textContent = '0';
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>

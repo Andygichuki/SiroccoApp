@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Room Details - Siroco Wildlife Sanctuary</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Flatpickr for Date Picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-savanna: #8B6B4D;
+            --secondary-acacia: #5C8D7A;
+            --accent-sunset: #C97C5D;
+            --water-lake: #4A7A9C;
+            --cream-plains: #F5F0E6;
+            --dark-earth: #2C3E4F;
+            --wildlife-gold: #E6B17E;
+            --success-green: #4A7856;
+            --error-red: #C45D5D;
+            --bg-main: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --border-light: #E8E0D5;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-savanna) 0%, var(--secondary-acacia) 100%);
+            color: white;
+            padding: 20px 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-title span {
+            font-size: 12px;
+            display: block;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .cart-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-sunset);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        /* Cart Summary Banner */
+        .cart-summary-banner {
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            color: white;
+            border-radius: 15px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .cart-summary-banner i {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .cart-summary-banner .cart-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-summary-banner .cart-total {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .view-cart-link {
+            background: white;
+            color: var(--secondary-acacia);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* Image Gallery */
+        .image-gallery {
+            margin-bottom: 20px;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-image i {
+            font-size: 80px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .main-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--accent-sunset);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .thumbnail-grid {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 5px 0;
+        }
+
+        .thumbnail {
+            width: 80px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            border-radius: 10px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .thumbnail.active {
+            opacity: 1;
+            border: 2px solid var(--secondary-acacia);
+        }
+
+        .thumbnail i {
+            font-size: 24px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Room Info */
+        .room-info {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .room-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .room-type {
+            font-size: 14px;
+            color: var(--secondary-acacia);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .room-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 25px;
+        }
+
+        .room-rating i {
+            color: #FFB800;
+        }
+
+        .room-rating span {
+            font-weight: 600;
+        }
+
+        .room-location {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .room-location i {
+            color: var(--secondary-acacia);
+        }
+
+        .room-price-large {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-savanna);
+            margin-bottom: 5px;
+        }
+
+        .room-price-large small {
+            font-size: 16px;
+            font-weight: 400;
+            color: #666;
+        }
+
+        .room-description-full {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #444;
+            margin: 20px 0;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .feature-item {
+            background: #f8f9fa;
+            padding: 15px 5px;
+            border-radius: 12px;
+        }
+
+        .feature-item i {
+            font-size: 24px;
+            color: var(--secondary-acacia);
+            margin-bottom: 8px;
+        }
+
+        .feature-item span {
+            font-size: 12px;
+            color: #666;
+            display: block;
+        }
+
+        /* Amenities */
+        .amenities-section {
+            margin: 25px 0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--secondary-acacia);
+        }
+
+        .amenities-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .amenity-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .amenity-item i {
+            color: var(--secondary-acacia);
+            width: 20px;
+        }
+
+        /* Availability Calendar */
+        .calendar-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .date-picker {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .date-input {
+            flex: 1;
+        }
+
+        .date-input label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .date-input input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .guest-selector {
+            margin: 15px 0;
+        }
+
+        .guest-selector label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .guest-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .guest-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border-light);
+            background: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .guest-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .guest-count {
+            font-size: 16px;
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .price-breakdown {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .price-row.total {
+            font-weight: 700;
+            font-size: 16px;
+            border-top: 1px solid var(--border-light);
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .add-to-cart-btn {
+            flex: 1;
+            background: white;
+            color: var(--secondary-acacia);
+            border: 2px solid var(--secondary-acacia);
+            padding: 16px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-to-cart-btn:hover {
+            background: var(--secondary-acacia);
+            color: white;
+        }
+
+        .book-now-btn {
+            flex: 2;
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .book-now-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        .book-now-btn:disabled,
+        .add-to-cart-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Reviews Section */
+        .reviews-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .average-rating {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rating-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary-savanna);
+        }
+
+        .rating-stars {
+            color: #FFB800;
+        }
+
+        .total-reviews {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .review-item {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .reviewer-name {
+            font-weight: 600;
+        }
+
+        .review-date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .review-rating {
+            color: #FFB800;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .review-comment {
+            font-size: 14px;
+            color: #444;
+            line-height: 1.5;
+        }
+
+        .view-all-reviews {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--secondary-acacia);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading i {
+            font-size: 40px;
+            color: var(--secondary-acacia);
+            margin-bottom: 15px;
+        }
+
+        /* Alert */
+        .alert {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.success {
+            border-left: 4px solid var(--success-green);
+        }
+
+        .alert.error {
+            border-left: 4px solid var(--error-red);
+        }
+
+        @keyframes slideDown {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 80px;
+                opacity: 1;
+            }
+        }
+
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid var(--border-light);
+            padding: 12px 16px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+        }
+
+        .nav-item.active {
+            color: var(--secondary-acacia);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <a href="rooms.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="header-title">
+                Room Details
+                <span>Lake Naivasha, Kenya</span>
+            </div>
+            <a href="cart.html" class="cart-btn" id="cartBtn">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="container" id="roomDetailsContainer">
+        <!-- Cart Summary Banner (hidden by default) -->
+        <div id="cartSummaryBanner" class="cart-summary-banner" onclick="window.location.href='cart.html'" style="display: none;">
+            <div class="cart-info">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cartItemCount">0</span> items in cart • 
+                <span class="cart-total">KSH <span id="cartTotal">0</span></span>
+            </div>
+            <span class="view-cart-link">View Cart →</span>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading room details...</p>
+        </div>
+
+        <!-- Room Content (hidden initially) -->
+        <div id="roomContent" style="display: none;">
+            <!-- Image Gallery -->
+            <div class="image-gallery">
+                <div class="main-image" id="mainImage">
+                    <i class="fas fa-tree"></i>
+                    <span class="image-badge" id="featuredBadge">Featured</span>
+                </div>
+                <div class="thumbnail-grid" id="thumbnailGrid"></div>
+            </div>
+
+            <!-- Room Info -->
+            <div class="room-info">
+                <div class="room-header">
+                    <div>
+                        <h1 class="room-name" id="roomName">Loading...</h1>
+                        <div class="room-type" id="roomType">HOUSE</div>
+                    </div>
+                    <div class="room-rating" id="roomRating">
+                        <i class="fas fa-star"></i>
+                        <span>4.5</span>
+                        <span>(0)</span>
+                    </div>
+                </div>
+                
+                <div class="room-location" id="roomLocation">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Main Compound • Lake View</span>
+                </div>
+
+                <div class="room-price-large" id="roomPrice">
+                    KSH 0 <small>/night</small>
+                </div>
+
+                <p class="room-description-full" id="roomDescription">
+                    Loading description...
+                </p>
+
+                <!-- Key Features -->
+                <div class="features-grid" id="keyFeatures">
+                    <div class="feature-item">
+                        <i class="fas fa-user-friends"></i>
+                        <span>4 Guests</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-bed"></i>
+                        <span>2 Beds</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-bath"></i>
+                        <span>2 Baths</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-ruler-combined"></i>
+                        <span>120 m²</span>
+                    </div>
+                </div>
+
+                <!-- Amenities -->
+                <div class="amenities-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-concierge-bell"></i>
+                        Amenities
+                    </h3>
+                    <div class="amenities-grid" id="amenitiesGrid"></div>
+                </div>
+            </div>
+
+            <!-- Availability & Booking -->
+            <div class="calendar-section">
+                <h3 class="section-title">
+                    <i class="fas fa-calendar-alt"></i>
+                    Check Availability
+                </h3>
+                
+                <div class="date-picker">
+                    <div class="date-input">
+                        <label>Check-in</label>
+                        <input type="text" id="checkIn" placeholder="Select date" readonly>
+                    </div>
+                    <div class="date-input">
+                        <label>Check-out</label>
+                        <input type="text" id="checkOut" placeholder="Select date" readonly>
+                    </div>
+                </div>
+
+                <div class="guest-selector">
+                    <label>Guests</label>
+                    <div class="guest-controls">
+                        <button class="guest-btn" onclick="changeGuests(-1)" id="guestMinus" disabled>-</button>
+                        <span class="guest-count" id="guestCount">2</span>
+                        <button class="guest-btn" onclick="changeGuests(1)" id="guestPlus">+</button>
+                    </div>
+                </div>
+
+                <div class="price-breakdown" id="priceBreakdown">
+                    <div class="price-row">
+                        <span>KSH <span id="pricePerNight">0</span> x <span id="nightsCount">0</span> nights</span>
+                        <span>KSH <span id="subtotal">0</span></span>
+                    </div>
+                    <div class="price-row">
+                        <span>Service fee</span>
+                        <span>KSH <span id="serviceFee">0</span></span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total</span>
+                        <span>KSH <span id="totalPrice">0</span></span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="add-to-cart-btn" onclick="addToCart()" id="addToCartBtn">
+                        <i class="fas fa-cart-plus"></i>
+                        Cart
+                    </button>
+                    <button class="book-now-btn" onclick="proceedToBooking()" id="bookNowBtn">
+                        <i class="fas fa-calendar-check"></i>
+                        Book Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reviews -->
+            <div class="reviews-section">
+                <div class="reviews-header">
+                    <h3 class="section-title" style="margin-bottom:0;">
+                        <i class="fas fa-star"></i>
+                        Reviews
+                    </h3>
+                    <div class="average-rating" id="averageRating">
+                        <span class="rating-number">4.5</span>
+                        <div>
+                            <div class="rating-stars" id="ratingStars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <span class="total-reviews" id="totalReviews">32 reviews</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reviewsList">
+                    <!-- Reviews will be loaded here -->
+                </div>
+
+                <a href="#" class="view-all-reviews" id="viewAllReviews">View all reviews →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="rooms.html" class="nav-item active">
+            <i class="fas fa-bed"></i>
+            <span>Rooms</span>
+        </a>
+        <a href="food.html" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Food</span>
+        </a>
+        <a href="activities.html" class="nav-item">
+            <i class="fas fa-hiking"></i>
+            <span>Activities</span>
+        </a>
+        <a href="profile.html" class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
+            authDomain: "sirocco-6668e.firebaseapp.com",
+            projectId: "sirocco-6668e",
+            storageBucket: "sirocco-6668e.firebasestorage.app",
+            messagingSenderId: "892213068784",
+            appId: "1:892213068784:web:5b4021e7fbe638999e5335",
+            measurementId: "G-BPCVPVC9R7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Get room ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('id');
+
+        // Global variables
+        let currentRoom = null;
+        let checkInDate = null;
+        let checkOutDate = null;
+        let guestCount = 2;
+        let bookedDates = [];
+        let currentUser = null;
+
+        // Check if user is logged in
+        function checkAuth() {
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                signInToFirebase();
+            } else {
+                // Still load room details, but disable booking buttons
+                loadRoomDetails();
+            }
+        }
+
+        // Sign in to Firebase Auth
+        async function signInToFirebase() {
+            try {
+                await auth.signInWithEmailAndPassword(currentUser.email, currentUser.password);
+                console.log("✅ Signed in to Firebase Auth");
+                loadRoomDetails();
+                loadCartSummary();
+                loadCartCount();
+            } catch (error) {
+                console.error("❌ Firebase Auth error:", error);
+                if (error.code === 'auth/user-not-found') {
+                    try {
+                        await auth.createUserWithEmailAndPassword(currentUser.email, currentUser.password);
+                        console.log("✅ Created Firebase Auth account");
+                        loadRoomDetails();
+                        loadCartSummary();
+                        loadCartCount();
+                    } catch (createError) {
+                        console.error("❌ Could not create auth account:", createError);
+                        loadRoomDetails();
+                    }
+                } else {
+                    loadRoomDetails();
+                }
+            }
+        }
+
+        // Load cart summary
+        async function loadCartSummary() {
+            if (!currentUser) return;
+            
+            try {
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+
+                if (!snapshot.empty) {
+                    let total = 0;
+                    snapshot.forEach(doc => {
+                        const item = doc.data();
+                        total += (item.price || 0) * (item.quantity || 1);
+                    });
+
+                    document.getElementById('cartSummaryBanner').style.display = 'flex';
+                    document.getElementById('cartItemCount').textContent = snapshot.size;
+                    document.getElementById('cartTotal').textContent = total.toLocaleString();
+                }
+            } catch (error) {
+                console.error("Error loading cart summary:", error);
+            }
+        }
+
+        // Initialize date pickers
+        flatpickr("#checkIn", {
+            minDate: "today",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                checkInDate = dateStr;
+                updateCheckOutMinDate();
+                calculatePrice();
+            }
+        });
+
+        flatpickr("#checkOut", {
+            minDate: "today",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                checkOutDate = dateStr;
+                calculatePrice();
+            }
+        });
+
+        function updateCheckOutMinDate() {
+            if (checkInDate) {
+                const checkOutPicker = document.getElementById("checkOut")._flatpickr;
+                checkOutPicker.set("minDate", checkInDate);
+            }
+        }
+
+        // Change guest count
+        function changeGuests(delta) {
+            const newCount = guestCount + delta;
+            if (newCount >= 1 && newCount <= (currentRoom?.capacity || 10)) {
+                guestCount = newCount;
+                document.getElementById('guestCount').textContent = guestCount;
+                document.getElementById('guestMinus').disabled = guestCount <= 1;
+                document.getElementById('guestPlus').disabled = guestCount >= (currentRoom?.capacity || 10);
+                calculatePrice();
+            }
+        }
+
+        // Calculate price based on dates
+        function calculatePrice() {
+            if (!checkInDate || !checkOutDate || !currentRoom) return;
+
+            const checkIn = new Date(checkInDate);
+            const checkOut = new Date(checkOutDate);
+            const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+            
+            if (nights <= 0) return;
+
+            const pricePerNight = currentRoom.pricepernight || 0;
+            const subtotal = pricePerNight * nights;
+            const serviceFee = Math.round(subtotal * 0.1); // 10% service fee
+            const total = subtotal + serviceFee;
+
+            document.getElementById('nightsCount').textContent = nights;
+            document.getElementById('pricePerNight').textContent = pricePerNight.toLocaleString();
+            document.getElementById('subtotal').textContent = subtotal.toLocaleString();
+            document.getElementById('serviceFee').textContent = serviceFee.toLocaleString();
+            document.getElementById('totalPrice').textContent = total.toLocaleString();
+        }
+
+        // Load room details
+        async function loadRoomDetails() {
+            if (!roomId) {
+                showAlert('No room ID specified', 'error');
+                setTimeout(() => window.location.href = 'rooms.html', 2000);
+                return;
+            }
+
+            try {
+                const doc = await db.collection("rooms").doc(roomId).get();
+                
+                if (!doc.exists) {
+                    showAlert('Room not found', 'error');
+                    setTimeout(() => window.location.href = 'rooms.html', 2000);
+                    return;
+                }
+
+                currentRoom = {
+                    id: doc.id,
+                    ...doc.data()
+                };
+
+                console.log("Room loaded:", currentRoom);
+                displayRoomDetails();
+                loadBookedDates();
+                loadReviews();
+
+            } catch (error) {
+                console.error("Error loading room:", error);
+                showAlert('Error loading room details', 'error');
+            }
+        }
+
+        // Display room details
+        function displayRoomDetails() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('roomContent').style.display = 'block';
+
+            // Basic info
+            document.getElementById('roomName').textContent = currentRoom.name || 'Unnamed Room';
+            document.getElementById('roomType').textContent = (currentRoom.type || 'room').toUpperCase();
+            document.getElementById('roomLocation').innerHTML = `
+                <i class="fas fa-map-marker-alt"></i>
+                <span>${currentRoom.location || 'Main Compound'} • ${currentRoom.view || 'Garden'} View</span>
+            `;
+            document.getElementById('roomPrice').innerHTML = `KSH ${(currentRoom.pricepernight || 0).toLocaleString()} <small>/night</small>`;
+            document.getElementById('roomDescription').textContent = currentRoom.description || 'No description available.';
+
+            // Rating
+            const rating = currentRoom.rating || 4.5;
+            const totalReviews = currentRoom.totalReviews || 0;
+            document.querySelector('#roomRating span').textContent = rating;
+            document.querySelector('#roomRating span:last-child').textContent = `(${totalReviews})`;
+
+            // Featured badge
+            if (currentRoom.isFeatured) {
+                document.getElementById('featuredBadge').style.display = 'block';
+            } else {
+                document.getElementById('featuredBadge').style.display = 'none';
+            }
+
+            // Key features
+            document.querySelector('#keyFeatures .feature-item:nth-child(1) span').textContent = `${currentRoom.capacity || 2} Guests`;
+            document.querySelector('#keyFeatures .feature-item:nth-child(2) span').textContent = `${currentRoom.bedrooms || 1} Beds`;
+            document.querySelector('#keyFeatures .feature-item:nth-child(3) span').textContent = `${currentRoom.bathrooms || 1} Baths`;
+            document.querySelector('#keyFeatures .feature-item:nth-child(4) span').textContent = currentRoom.size || '120 m²';
+
+            // Amenities
+            const amenities = currentRoom.amenities || [];
+            const amenitiesGrid = document.getElementById('amenitiesGrid');
+            amenitiesGrid.innerHTML = '';
+            
+            amenities.forEach(amenity => {
+                const div = document.createElement('div');
+                div.className = 'amenity-item';
+                div.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>${amenity}</span>
+                `;
+                amenitiesGrid.appendChild(div);
+            });
+
+            // Images
+            const images = currentRoom.images || [];
+            const mainImage = document.getElementById('mainImage');
+            const thumbnailGrid = document.getElementById('thumbnailGrid');
+            
+            if (images.length > 0) {
+                mainImage.innerHTML = `<img src="${images[0]}" alt="${currentRoom.name}">`;
+                thumbnailGrid.innerHTML = '';
+                
+                images.forEach((img, index) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = `thumbnail ${index === 0 ? 'active' : ''}`;
+                    thumb.innerHTML = `<img src="${img}" style="width:100%; height:100%; object-fit:cover;">`;
+                    thumb.onclick = () => {
+                        mainImage.innerHTML = `<img src="${img}" alt="${currentRoom.name}">`;
+                        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                        thumb.classList.add('active');
+                    };
+                    thumbnailGrid.appendChild(thumb);
+                });
+            }
+
+            // Update guest max
+            document.getElementById('guestPlus').disabled = guestCount >= (currentRoom.capacity || 10);
+        }
+
+        // Load booked dates
+        async function loadBookedDates() {
+            try {
+                const snapshot = await db.collection("bookings")
+                    .where("roomId", "==", roomId)
+                    .where("status", "in", ["confirmed", "pending"])
+                    .get();
+
+                bookedDates = [];
+                snapshot.forEach(doc => {
+                    const booking = doc.data();
+                    // Add logic to parse booked dates
+                });
+
+            } catch (error) {
+                console.error("Error loading booked dates:", error);
+            }
+        }
+
+        // Load reviews
+        async function loadReviews() {
+            try {
+                const snapshot = await db.collection("reviews")
+                    .where("itemId", "==", roomId)
+                    .where("itemType", "==", "room")
+                    .orderBy("createdAt", "desc")
+                    .limit(3)
+                    .get();
+
+                const reviewsList = document.getElementById('reviewsList');
+                reviewsList.innerHTML = '';
+
+                if (snapshot.empty) {
+                    reviewsList.innerHTML = '<p style="text-align:center; color:#666; padding:20px;">No reviews yet</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const review = doc.data();
+                    const date = review.createdAt ? new Date(review.createdAt.toDate()).toLocaleDateString() : 'Recently';
+                    
+                    const reviewEl = document.createElement('div');
+                    reviewEl.className = 'review-item';
+                    
+                    // Generate stars
+                    let stars = '';
+                    for (let i = 1; i <= 5; i++) {
+                        if (i <= review.rating) {
+                            stars += '<i class="fas fa-star"></i>';
+                        } else {
+                            stars += '<i class="far fa-star"></i>';
+                        }
+                    }
+                    
+                    reviewEl.innerHTML = `
+                        <div class="review-header">
+                            <span class="reviewer-name">${review.userName || 'Anonymous'}</span>
+                            <span class="review-date">${date}</span>
+                        </div>
+                        <div class="review-rating">${stars}</div>
+                        <p class="review-comment">${review.comment || ''}</p>
+                    `;
+                    
+                    reviewsList.appendChild(reviewEl);
+                });
+
+            } catch (error) {
+                console.error("Error loading reviews:", error);
+            }
+        }
+
+        // Add to cart
+        async function addToCart() {
+            if (!currentUser) {
+                showAlert("Please login to add items to cart", "error");
+                setTimeout(() => window.location.href = "login.html", 1500);
+                return;
+            }
+
+            if (!checkInDate || !checkOutDate) {
+                showAlert("Please select check-in and check-out dates", "error");
+                return;
+            }
+
+            const nights = Math.ceil((new Date(checkOutDate) - new Date(checkInDate)) / (1000 * 60 * 60 * 24));
+            if (nights <= 0) {
+                showAlert("Check-out date must be after check-in date", "error");
+                return;
+            }
+
+            try {
+                // Check if room already in cart
+                const existingCart = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .where("roomId", "==", roomId)
+                    .get();
+
+                if (!existingCart.empty) {
+                    showAlert('This room is already in your cart', 'error');
+                    return;
+                }
+
+                // Add to cart
+                await db.collection("cart").add({
+                    userId: currentUser.uid,
+                    type: 'room',
+                    roomId: roomId,
+                    name: currentRoom.name,
+                    price: currentRoom.pricepernight,
+                    quantity: 1,
+                    checkIn: checkInDate,
+                    checkOut: checkOutDate,
+                    guests: guestCount,
+                    nights: nights,
+                    details: `${guestCount} guests, ${nights} nights`,
+                    perNight: true,
+                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showAlert('Added to cart!', 'success');
+                
+                // Update cart badge and summary
+                loadCartCount();
+                loadCartSummary();
+
+            } catch (error) {
+                console.error("Error adding to cart:", error);
+                showAlert('Error adding to cart', 'error');
+            }
+        }
+
+        // Proceed to booking
+        function proceedToBooking() {
+            if (!currentUser) {
+                showAlert("Please login to book this room", "error");
+                setTimeout(() => window.location.href = "login.html", 1500);
+                return;
+            }
+
+            if (!checkInDate || !checkOutDate) {
+                showAlert("Please select check-in and check-out dates", "error");
+                return;
+            }
+
+            const checkIn = new Date(checkInDate);
+            const checkOut = new Date(checkOutDate);
+            const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+
+            if (nights <= 0) {
+                showAlert("Check-out date must be after check-in date", "error");
+                return;
+            }
+
+            // Store booking details in localStorage
+            const bookingDetails = {
+                roomId: roomId,
+                roomName: currentRoom.name,
+                roomPrice: currentRoom.pricepernight,
+                checkIn: checkInDate,
+                checkOut: checkOutDate,
+                guests: guestCount,
+                nights: nights,
+                subtotal: currentRoom.pricepernight * nights,
+                serviceFee: Math.round(currentRoom.pricepernight * nights * 0.1),
+                total: currentRoom.pricepernight * nights + Math.round(currentRoom.pricepernight * nights * 0.1)
+            };
+
+            localStorage.setItem('currentBooking', JSON.stringify(bookingDetails));
+            window.location.href = `booking.html?room=${roomId}`;
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Load cart count
+        async function loadCartCount() {
+            if (!currentUser) return;
+            
+            try {
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+                
+                document.getElementById('cartBadge').textContent = snapshot.size;
+            } catch (error) {
+                console.error("Error loading cart:", error);
+            }
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>

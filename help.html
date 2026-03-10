@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Help & Support - Siroco Wildlife Sanctuary</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-savanna: #8B6B4D;
+            --secondary-acacia: #5C8D7A;
+            --accent-sunset: #C97C5D;
+            --water-lake: #4A7A9C;
+            --cream-plains: #F5F0E6;
+            --dark-earth: #2C3E4F;
+            --wildlife-gold: #E6B17E;
+            --success-green: #4A7856;
+            --error-red: #C45D5D;
+            --bg-main: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --border-light: #E8E0D5;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-savanna) 0%, var(--secondary-acacia) 100%);
+            color: white;
+            padding: 20px 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-title span {
+            font-size: 12px;
+            display: block;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .cart-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-sunset);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        /* Cart Summary Banner */
+        .cart-summary-banner {
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            color: white;
+            border-radius: 15px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .cart-summary-banner i {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .cart-summary-banner .cart-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-summary-banner .cart-total {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .view-cart-link {
+            background: white;
+            color: var(--secondary-acacia);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* Search Bar */
+        .help-search {
+            background: white;
+            border-radius: 30px;
+            padding: 12px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+        }
+
+        .help-search i {
+            color: var(--secondary-acacia);
+            font-size: 18px;
+        }
+
+        .help-search input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            background: transparent;
+        }
+
+        .help-search input::placeholder {
+            color: #999;
+        }
+
+        /* Quick Help Cards */
+        .quick-help-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .quick-help-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .quick-help-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--secondary-acacia);
+        }
+
+        .quick-help-card i {
+            font-size: 32px;
+            color: var(--secondary-acacia);
+            margin-bottom: 10px;
+        }
+
+        .quick-help-card h3 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .quick-help-card p {
+            font-size: 11px;
+            color: #666;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 25px 0 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--secondary-acacia);
+        }
+
+        /* FAQ Accordion */
+        .faq-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .faq-question h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .faq-question i {
+            color: var(--secondary-acacia);
+            transition: transform 0.3s;
+        }
+
+        .faq-question.active i {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 0 15px;
+            display: none;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .faq-answer.show {
+            display: block;
+        }
+
+        /* Contact Options */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .contact-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .contact-card:hover {
+            background: var(--secondary-acacia);
+            color: white;
+        }
+
+        .contact-card:hover i {
+            color: white;
+        }
+
+        .contact-card i {
+            font-size: 28px;
+            color: var(--secondary-acacia);
+            margin-bottom: 10px;
+            transition: color 0.3s;
+        }
+
+        .contact-card h3 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .contact-card p {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .contact-card:hover p {
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Contact Form */
+        .contact-form {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .form-group label i {
+            color: var(--secondary-acacia);
+            margin-right: 5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 12px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .input-wrapper input,
+        .input-wrapper textarea,
+        .input-wrapper select {
+            width: 100%;
+            padding: 12px 12px 12px 35px;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper textarea:focus,
+        .input-wrapper select:focus {
+            outline: none;
+            border-color: var(--secondary-acacia);
+            background: white;
+        }
+
+        .input-wrapper textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .input-wrapper select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Location & Hours */
+        .info-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .info-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background: #f0f9f4;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-acacia);
+            font-size: 20px;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .hours-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .hour-item {
+            font-size: 13px;
+        }
+
+        .hour-day {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .hour-time {
+            color: #666;
+        }
+
+        /* Emergency Contact */
+        .emergency-card {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .emergency-icon {
+            width: 50px;
+            height: 50px;
+            background: #ffc107;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .emergency-content {
+            flex: 1;
+        }
+
+        .emergency-title {
+            font-weight: 700;
+            color: #856404;
+            margin-bottom: 3px;
+        }
+
+        .emergency-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: #856404;
+            text-decoration: none;
+        }
+
+        .emergency-note {
+            font-size: 11px;
+            color: #856404;
+            opacity: 0.8;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading i {
+            font-size: 40px;
+            color: var(--secondary-acacia);
+            margin-bottom: 15px;
+        }
+
+        /* Alert */
+        .alert {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.success {
+            border-left: 4px solid var(--success-green);
+        }
+
+        .alert.error {
+            border-left: 4px solid var(--error-red);
+        }
+
+        .alert.info {
+            border-left: 4px solid var(--secondary-acacia);
+        }
+
+        @keyframes slideDown {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 80px;
+                opacity: 1;
+            }
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid var(--border-light);
+            padding: 12px 16px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+        }
+
+        .nav-item.active {
+            color: var(--secondary-acacia);
+        }
+
+        .nav-item:hover {
+            color: var(--primary-savanna);
+        }
+
+        /* Success Message */
+        .success-message {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .success-message i {
+            font-size: 60px;
+            color: var(--success-green);
+            margin-bottom: 15px;
+        }
+
+        .success-message h3 {
+            margin-bottom: 10px;
+        }
+
+        .success-message p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <a href="profile.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="header-title">
+                Help & Support
+                <span>We're here for you</span>
+            </div>
+            <a href="cart.html" class="cart-btn" id="cartBtn">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Cart Summary Banner -->
+        <div id="cartSummaryBanner" class="cart-summary-banner" onclick="window.location.href='cart.html'" style="display: none;">
+            <div class="cart-info">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cartItemCount">0</span> items in cart • 
+                <span class="cart-total">KSH <span id="cartTotal">0</span></span>
+            </div>
+            <span class="view-cart-link">View Cart →</span>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="help-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search for help topics..." onkeyup="searchHelp()">
+        </div>
+
+        <!-- Quick Help Cards -->
+        <div class="quick-help-grid">
+            <div class="quick-help-card" onclick="scrollToSection('faq')">
+                <i class="fas fa-question-circle"></i>
+                <h3>FAQs</h3>
+                <p>Frequently asked questions</p>
+            </div>
+            <div class="quick-help-card" onclick="scrollToSection('bookings')">
+                <i class="fas fa-calendar-check"></i>
+                <h3>Bookings</h3>
+                <p>Manage your reservations</p>
+            </div>
+            <div class="quick-help-card" onclick="scrollToSection('payments')">
+                <i class="fas fa-credit-card"></i>
+                <h3>Payments</h3>
+                <p>Billing & refunds</p>
+            </div>
+            <div class="quick-help-card" onclick="scrollToSection('contact')">
+                <i class="fas fa-headset"></i>
+                <h3>Contact Us</h3>
+                <p>Get in touch</p>
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="emergency-card">
+            <div class="emergency-icon">
+                <i class="fas fa-phone-alt"></i>
+            </div>
+            <div class="emergency-content">
+                <div class="emergency-title">24/7 Emergency Support</div>
+                <a href="tel:+254700123456" class="emergency-number">+254 700 123 456</a>
+                <div class="emergency-note">For urgent assistance only</div>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="section-title" id="faq">
+            <i class="fas fa-question-circle"></i>
+            Frequently Asked Questions
+        </div>
+
+        <div class="faq-section">
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>How do I make a booking?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    To make a booking, simply browse our rooms, select your dates, choose your room, and proceed to checkout. You'll need to be logged in to complete your booking. Once confirmed, you'll receive an email with your booking details.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>What is your cancellation policy?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Free cancellation is available up to 7 days before check-in. Cancellations within 7 days of check-in will incur a 50% charge of the total booking amount. No-shows will be charged the full amount.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>What payment methods do you accept?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    We accept Visa, Mastercard, American Express, and M-PESA. All payments are processed securely. For M-PESA payments, you'll receive a prompt on your phone to complete the transaction.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>Can I modify my booking?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Yes, you can modify your booking up to 48 hours before check-in. Simply go to "My Trips", select the booking you want to modify, and click "Modify". Note that changes may affect the price.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>What activities are included?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Our sanctuary offers game drives, guided bird walks, horse riding, boat safaris, and cultural experiences. Some activities may require an additional fee. Check our activities page for more details and pricing.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>Is breakfast included?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Breakfast is included with all room bookings. We serve a full English/Kenyan breakfast from 7:00 AM to 10:00 AM. Special dietary requirements can be accommodated with advance notice.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>What should I bring?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    We recommend bringing comfortable walking shoes, sunscreen, a hat, camera, binoculars for wildlife viewing, and light clothing for the day with a warm jacket for evenings. Don't forget your swimming gear!
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>Is there Wi-Fi available?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Yes, complimentary Wi-Fi is available in all rooms and common areas. However, due to our remote location, the connection may vary. We encourage you to disconnect and enjoy nature!
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings Section -->
+        <div class="section-title" id="bookings">
+            <i class="fas fa-calendar-check"></i>
+            Booking Help
+        </div>
+
+        <div class="faq-section">
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>How do I find my booking?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Log in to your account and go to "My Trips". You'll see all your upcoming and past bookings. You can also find your booking confirmation in your email inbox.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>Can I book for someone else?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Yes, you can make a booking for someone else. Just enter their details in the guest information section during checkout. They'll receive the confirmation email.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>What is check-in/out time?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Check-in is from 2:00 PM. Check-out is at 10:00 AM. Early check-in or late check-out may be available upon request, subject to availability and additional fees.
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Section -->
+        <div class="section-title" id="payments">
+            <i class="fas fa-credit-card"></i>
+            Payment Help
+        </div>
+
+        <div class="faq-section">
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>How do I get a refund?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Refunds are processed automatically when you cancel within the free cancellation period. Refunds may take 5-10 business days to appear in your account, depending on your bank.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>Is my payment secure?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Yes, all payments are processed through secure, encrypted connections. We never store your full credit card details. For M-PESA, all transactions are protected by Safaricom's security.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <h4>Do you offer discounts?</h4>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    We offer special rates for longer stays, group bookings, and return guests. Check our promotions page or subscribe to our newsletter for exclusive offers.
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Options -->
+        <div class="section-title" id="contact">
+            <i class="fas fa-headset"></i>
+            Contact Us
+        </div>
+
+        <div class="contact-grid">
+            <div class="contact-card" onclick="window.location.href='tel:+254700123456'">
+                <i class="fas fa-phone"></i>
+                <h3>Phone</h3>
+                <p>+254 700 123 456</p>
+            </div>
+            <div class="contact-card" onclick="window.location.href='mailto:info@siroco.com'">
+                <i class="fas fa-envelope"></i>
+                <h3>Email</h3>
+                <p>info@siroco.com</p>
+            </div>
+            <div class="contact-card" onclick="window.open('https://wa.me/254700123456')">
+                <i class="fab fa-whatsapp"></i>
+                <h3>WhatsApp</h3>
+                <p>+254 700 123 456</p>
+            </div>
+            <div class="contact-card" onclick="window.location.href='https://m.me/siroco'">
+                <i class="fab fa-facebook-messenger"></i>
+                <h3>Messenger</h3>
+                <p>@siroco</p>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="contact-form" id="contactForm">
+            <div class="section-title">
+                <i class="fas fa-paper-plane"></i>
+                Send us a Message
+            </div>
+
+            <form id="helpForm" onsubmit="event.preventDefault(); submitHelpForm()">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Your Name</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="contactName" placeholder="Enter your name" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="contactEmail" placeholder="Enter your email" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Subject</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-tag"></i>
+                        <select id="contactSubject" required>
+                            <option value="">Select a subject</option>
+                            <option value="booking">Booking Question</option>
+                            <option value="payment">Payment Issue</option>
+                            <option value="cancellation">Cancellation</option>
+                            <option value="feedback">Feedback</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Message</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-comment"></i>
+                        <textarea id="contactMessage" placeholder="How can we help you?" required></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i> Send Message
+                </button>
+            </form>
+        </div>
+
+        <!-- Location & Hours -->
+        <div class="info-card">
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-title">Location</div>
+                    <div class="info-text">
+                        Siroco Wildlife Sanctuary<br>
+                        Lake Naivasha, Kenya<br>
+                        <a href="https://maps.google.com/?q=Lake+Naivasha" style="color: var(--secondary-acacia); text-decoration: none;" target="_blank">Get Directions →</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-title">Office Hours</div>
+                    <div class="hours-grid">
+                        <div class="hour-item">
+                            <div class="hour-day">Monday - Friday</div>
+                            <div class="hour-time">8:00 AM - 6:00 PM</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour-day">Saturday</div>
+                            <div class="hour-time">9:00 AM - 4:00 PM</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour-day">Sunday</div>
+                            <div class="hour-time">10:00 AM - 2:00 PM</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour-day">Public Holidays</div>
+                            <div class="hour-time">Closed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="rooms.html" class="nav-item">
+            <i class="fas fa-bed"></i>
+            <span>Rooms</span>
+        </a>
+        <a href="food.html" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Food</span>
+        </a>
+        <a href="activities.html" class="nav-item">
+            <i class="fas fa-hiking"></i>
+            <span>Activities</span>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
+            authDomain: "sirocco-6668e.firebaseapp.com",
+            projectId: "sirocco-6668e",
+            storageBucket: "sirocco-6668e.firebasestorage.app",
+            messagingSenderId: "892213068784",
+            appId: "1:892213068784:web:5b4021e7fbe638999e5335",
+            measurementId: "G-BPCVPVC9R7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global variables
+        let currentUser = null;
+
+        // Check if user is logged in
+        function checkAuth() {
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                console.log("✅ User logged in:", currentUser.email);
+                loadCartSummary();
+                loadCartCount();
+                fillUserDetails();
+            }
+        }
+
+        // Fill user details in form
+        function fillUserDetails() {
+            if (currentUser) {
+                document.getElementById('contactName').value = currentUser.fullName || '';
+                document.getElementById('contactEmail').value = currentUser.email || '';
+            }
+        }
+
+        // Toggle FAQ
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('i');
+            
+            answer.classList.toggle('show');
+            element.classList.toggle('active');
+            
+            if (answer.classList.contains('show')) {
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Scroll to section
+        function scrollToSection(sectionId) {
+            const element = document.getElementById(sectionId);
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Search help
+        function searchHelp() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            if (searchTerm.length < 2) {
+                // Reset all
+                faqItems.forEach(item => {
+                    item.style.display = 'block';
+                });
+                return;
+            }
+
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question h4').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Submit help form
+        async function submitHelpForm() {
+            const name = document.getElementById('contactName').value.trim();
+            const email = document.getElementById('contactEmail').value.trim();
+            const subject = document.getElementById('contactSubject').value;
+            const message = document.getElementById('contactMessage').value.trim();
+
+            if (!name || !email || !subject || !message) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                // Save to Firestore
+                await db.collection("support_messages").add({
+                    userId: currentUser?.uid || 'guest',
+                    userName: name,
+                    userEmail: email,
+                    subject: subject,
+                    message: message,
+                    status: 'new',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Show success message
+                const form = document.getElementById('helpForm');
+                form.innerHTML = `
+                    <div class="success-message">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>Message Sent!</h3>
+                        <p>Thank you for contacting us. We'll get back to you within 24 hours.</p>
+                        <button class="submit-btn" onclick="resetForm()" style="margin-top: 15px;">Send Another Message</button>
+                    </div>
+                `;
+
+                showAlert('Message sent successfully!', 'success');
+
+            } catch (error) {
+                console.error("Error sending message:", error);
+                showAlert('Error sending message. Please try again.', 'error');
+                
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            location.reload();
+        }
+
+        // Load cart summary
+        async function loadCartSummary() {
+            if (!currentUser) return;
+            
+            try {
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+
+                if (!snapshot.empty) {
+                    let total = 0;
+                    snapshot.forEach(doc => {
+                        const item = doc.data();
+                        const price = item.price || 0;
+                        const quantity = item.quantity || 1;
+                        total += price * quantity;
+                    });
+
+                    document.getElementById('cartSummaryBanner').style.display = 'flex';
+                    document.getElementById('cartItemCount').textContent = snapshot.size;
+                    document.getElementById('cartTotal').textContent = total.toLocaleString();
+                }
+            } catch (error) {
+                console.error("Error loading cart summary:", error);
+            }
+        }
+
+        // Load cart count
+        async function loadCartCount() {
+            if (!currentUser) {
+                document.getElementById('cartBadge').textContent = '0';
+                return;
+            }
+            
+            try {
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+                
+                document.getElementById('cartBadge').textContent = snapshot.size;
+            } catch (error) {
+                console.error("Error loading cart count:", error);
+                document.getElementById('cartBadge').textContent = '0';
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>

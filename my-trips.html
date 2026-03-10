@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>My Trips - Siroco Wildlife Sanctuary</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK - Remove Auth, keep only Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-savanna: #8B6B4D;
+            --secondary-acacia: #5C8D7A;
+            --accent-sunset: #C97C5D;
+            --water-lake: #4A7A9C;
+            --cream-plains: #F5F0E6;
+            --dark-earth: #2C3E4F;
+            --wildlife-gold: #E6B17E;
+            --success-green: #4A7856;
+            --error-red: #C45D5D;
+            --bg-main: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --border-light: #E8E0D5;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-savanna) 0%, var(--secondary-acacia) 100%);
+            color: white;
+            padding: 20px 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-title span {
+            font-size: 12px;
+            display: block;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .cart-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-sunset);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        /* Cart Summary Banner */
+        .cart-summary-banner {
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            color: white;
+            border-radius: 15px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .cart-summary-banner i {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .cart-summary-banner .cart-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-summary-banner .cart-total {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .view-cart-link {
+            background: white;
+            color: var(--secondary-acacia);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 5px;
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: var(--secondary-acacia);
+            color: white;
+        }
+
+        .tab i {
+            margin-right: 5px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 5px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-savanna);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .stat-label i {
+            color: var(--secondary-acacia);
+            margin-right: 3px;
+        }
+
+        /* Booking Cards */
+        .bookings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .booking-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .booking-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .booking-header {
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .booking-id {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .booking-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-confirmed {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .status-pending {
+            background: var(--wildlife-gold);
+            color: var(--text-dark);
+        }
+
+        .status-cancelled {
+            background: var(--error-red);
+            color: white;
+        }
+
+        .status-completed {
+            background: #6c757d;
+            color: white;
+        }
+
+        .booking-content {
+            padding: 15px;
+        }
+
+        .booking-room {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .room-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .room-details h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .room-location {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .booking-dates {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .date-item {
+            text-align: center;
+        }
+
+        .date-label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .date-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .date-separator {
+            color: var(--secondary-acacia);
+            display: flex;
+            align-items: center;
+        }
+
+        .booking-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .meta-item {
+            text-align: center;
+        }
+
+        .meta-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-savanna);
+        }
+
+        .meta-label {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .booking-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .booking-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-savanna);
+        }
+
+        .booking-price small {
+            font-size: 12px;
+            font-weight: 400;
+            color: #666;
+        }
+
+        .booking-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .view-btn {
+            background: var(--secondary-acacia);
+            color: white;
+        }
+
+        .view-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        .cancel-btn {
+            background: white;
+            border: 1px solid var(--error-red);
+            color: var(--error-red);
+        }
+
+        .cancel-btn:hover {
+            background: var(--error-red);
+            color: white;
+        }
+
+        .review-btn {
+            background: white;
+            border: 1px solid var(--wildlife-gold);
+            color: var(--wildlife-gold);
+        }
+
+        .review-btn:hover {
+            background: var(--wildlife-gold);
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: var(--border-light);
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .browse-btn {
+            display: inline-block;
+            background: var(--secondary-acacia);
+            color: white;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .browse-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading i {
+            font-size: 40px;
+            color: var(--secondary-acacia);
+            margin-bottom: 15px;
+        }
+
+        /* Alert */
+        .alert {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.success {
+            border-left: 4px solid var(--success-green);
+        }
+
+        .alert.error {
+            border-left: 4px solid var(--error-red);
+        }
+
+        @keyframes slideDown {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 80px;
+                opacity: 1;
+            }
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid var(--border-light);
+            padding: 12px 16px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+        }
+
+        .nav-item.active {
+            color: var(--secondary-acacia);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <a href="profile.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="header-title">
+                My Trips
+                <span>Your safari adventures</span>
+            </div>
+            <a href="cart.html" class="cart-btn" id="cartBtn">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Cart Summary Banner (hidden by default) -->
+        <div id="cartSummaryBanner" class="cart-summary-banner" onclick="window.location.href='cart.html'" style="display: none;">
+            <div class="cart-info">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cartItemCount">0</span> items in cart • 
+                <span class="cart-total">KSH <span id="cartTotal">0</span></span>
+            </div>
+            <span class="view-cart-link">View Cart →</span>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('upcoming')" id="tabUpcoming">
+                <i class="fas fa-calendar-check"></i> Upcoming
+            </div>
+            <div class="tab" onclick="switchTab('past')" id="tabPast">
+                <i class="fas fa-history"></i> Past
+            </div>
+            <div class="tab" onclick="switchTab('cancelled')" id="tabCancelled">
+                <i class="fas fa-times-circle"></i> Cancelled
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalBookings">0</div>
+                <div class="stat-label"><i class="fas fa-suitcase"></i> Total Trips</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalNights">0</div>
+                <div class="stat-label"><i class="fas fa-moon"></i> Nights</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalSpent">0</div>
+                <div class="stat-label"><i class="fas fa-coins"></i> Spent</div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading your trips...</p>
+        </div>
+
+        <!-- Bookings List -->
+        <div class="bookings-list" id="bookingsList"></div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="rooms.html" class="nav-item">
+            <i class="fas fa-bed"></i>
+            <span>Rooms</span>
+        </a>
+        <a href="food.html" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Food</span>
+        </a>
+        <a href="activities.html" class="nav-item">
+            <i class="fas fa-hiking"></i>
+            <span>Activities</span>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
+            authDomain: "sirocco-6668e.firebaseapp.com",
+            projectId: "sirocco-6668e",
+            storageBucket: "sirocco-6668e.firebasestorage.app",
+            messagingSenderId: "892213068784",
+            appId: "1:892213068784:web:5b4021e7fbe638999e5335",
+            measurementId: "G-BPCVPVC9R7"
+        };
+
+        // Initialize Firebase (Firestore only - NO AUTH)
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global variables
+        let allBookings = [];
+        let filteredBookings = [];
+        let currentTab = 'upcoming';
+        let currentUser = null;
+
+        // Check if user is logged in (localStorage only)
+        function checkAuth() {
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                console.log("✅ User logged in:", currentUser.email);
+                loadBookings();
+                loadCartSummary();
+                loadCartCount();
+                return true;
+            } else {
+                console.log("❌ No user logged in");
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        // Load cart summary
+        async function loadCartSummary() {
+            try {
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+
+                if (!snapshot.empty) {
+                    let total = 0;
+                    snapshot.forEach(doc => {
+                        const item = doc.data();
+                        const price = item.price || 0;
+                        const quantity = item.quantity || 1;
+                        const participants = item.participants || 1;
+                        total += price * quantity * participants;
+                    });
+
+                    document.getElementById('cartSummaryBanner').style.display = 'flex';
+                    document.getElementById('cartItemCount').textContent = snapshot.size;
+                    document.getElementById('cartTotal').textContent = total.toLocaleString();
+                } else {
+                    document.getElementById('cartSummaryBanner').style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Error loading cart summary:", error);
+                document.getElementById('cartSummaryBanner').style.display = 'none';
+            }
+        }
+
+        // Load cart count
+        async function loadCartCount() {
+            try {
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+                
+                document.getElementById('cartBadge').textContent = snapshot.size;
+            } catch (error) {
+                console.error("Error loading cart count:", error);
+                document.getElementById('cartBadge').textContent = '0';
+            }
+        }
+
+        // Load bookings from Firestore
+        async function loadBookings() {
+            const loading = document.getElementById('loading');
+            const bookingsList = document.getElementById('bookingsList');
+            
+            try {
+                console.log("🔄 Loading bookings for user:", currentUser.uid);
+                
+                // Try with orderBy first
+                try {
+                    const snapshot = await db.collection("bookings")
+                        .where("userId", "==", currentUser.uid)
+                        .orderBy("checkIn", "desc")
+                        .get();
+                    
+                    processBookings(snapshot);
+                } catch (indexError) {
+                    console.log("⚠️ Index missing, trying without orderBy");
+                    
+                    // Fallback: get without orderBy and sort in memory
+                    const snapshot = await db.collection("bookings")
+                        .where("userId", "==", currentUser.uid)
+                        .get();
+                    
+                    processBookings(snapshot, true);
+                }
+
+            } catch (error) {
+                console.error("❌ Error loading bookings:", error);
+                loading.style.display = 'none';
+                
+                if (error.code === 'permission-denied') {
+                    bookingsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle" style="color: var(--error-red);"></i>
+                            <h3>Permission Error</h3>
+                            <p>Unable to access bookings. Please check Firestore rules.</p>
+                            <button class="browse-btn" onclick="loadBookings()">
+                                <i class="fas fa-sync-alt"></i> Try Again
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    bookingsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle" style="color: var(--error-red);"></i>
+                            <h3>Error Loading Trips</h3>
+                            <p>${error.message}</p>
+                            <button class="browse-btn" onclick="loadBookings()">
+                                <i class="fas fa-sync-alt"></i> Try Again
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Process bookings data
+        function processBookings(snapshot, sortInMemory = false) {
+            const loading = document.getElementById('loading');
+            const bookingsList = document.getElementById('bookingsList');
+            
+            loading.style.display = 'none';
+
+            if (snapshot.empty) {
+                showEmptyState();
+                updateStats([]);
+                return;
+            }
+
+            allBookings = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                
+                // Convert Firestore timestamps to Date objects
+                let checkIn, checkOut, createdAt;
+                
+                try {
+                    checkIn = data.checkIn?.toDate ? data.checkIn.toDate() : new Date(data.checkIn);
+                    checkOut = data.checkOut?.toDate ? data.checkOut.toDate() : new Date(data.checkOut);
+                    createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+                } catch (e) {
+                    console.warn("Date conversion error:", e);
+                    checkIn = new Date();
+                    checkOut = new Date();
+                    createdAt = new Date();
+                }
+                
+                allBookings.push({
+                    id: doc.id,
+                    ...data,
+                    checkIn,
+                    checkOut,
+                    createdAt
+                });
+            });
+
+            // Sort in memory if needed
+            if (sortInMemory) {
+                allBookings.sort((a, b) => b.checkIn - a.checkIn);
+            }
+
+            console.log("✅ Bookings loaded:", allBookings.length);
+            
+            updateStats(allBookings);
+            filterBookings(currentTab);
+        }
+
+        // Update statistics
+        function updateStats(bookings) {
+            const totalBookings = bookings.length;
+            const totalNights = bookings.reduce((sum, booking) => sum + (booking.nights || 0), 0);
+            const totalSpent = bookings.reduce((sum, booking) => sum + (booking.totalAmount || 0), 0);
+
+            document.getElementById('totalBookings').textContent = totalBookings;
+            document.getElementById('totalNights').textContent = totalNights;
+            document.getElementById('totalSpent').textContent = totalSpent.toLocaleString();
+        }
+
+        // Filter bookings by tab
+        function filterBookings(tab) {
+            currentTab = tab;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (tab === 'upcoming') {
+                filteredBookings = allBookings.filter(booking => 
+                    booking.status !== 'cancelled' && 
+                    booking.status !== 'completed' &&
+                    new Date(booking.checkOut) >= today
+                );
+            } else if (tab === 'past') {
+                filteredBookings = allBookings.filter(booking => 
+                    (booking.status === 'completed' || new Date(booking.checkOut) < today) &&
+                    booking.status !== 'cancelled'
+                );
+            } else if (tab === 'cancelled') {
+                filteredBookings = allBookings.filter(booking => 
+                    booking.status === 'cancelled'
+                );
+            }
+
+            displayBookings();
+        }
+
+        // Switch tabs
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update active tab
+            document.getElementById('tabUpcoming').classList.remove('active');
+            document.getElementById('tabPast').classList.remove('active');
+            document.getElementById('tabCancelled').classList.remove('active');
+            
+            const tabId = `tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`;
+            document.getElementById(tabId).classList.add('active');
+            
+            filterBookings(tab);
+        }
+
+        // Display bookings
+        function displayBookings() {
+            const bookingsList = document.getElementById('bookingsList');
+            
+            if (filteredBookings.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            let html = '';
+            filteredBookings.forEach(booking => {
+                const checkIn = booking.checkIn instanceof Date ? booking.checkIn : new Date(booking.checkIn);
+                const checkOut = booking.checkOut instanceof Date ? booking.checkOut : new Date(booking.checkOut);
+                
+                const status = booking.status || 'confirmed';
+                const statusClass = `status-${status}`;
+                const statusIcon = status === 'confirmed' ? 'fa-check-circle' : 
+                                  status === 'pending' ? 'fa-clock' : 
+                                  status === 'cancelled' ? 'fa-times-circle' : 'fa-check-circle';
+                
+                // Determine if booking can be cancelled (up to 7 days before)
+                const canCancel = status === 'confirmed' && checkIn > new Date(Date.now() + 7*24*60*60*1000);
+                
+                // Determine if booking can be reviewed
+                const canReview = status === 'completed' || checkOut < new Date();
+
+                html += `
+                    <div class="booking-card" onclick="viewBookingDetails('${booking.id}')">
+                        <div class="booking-header">
+                            <span class="booking-id">#${booking.id.slice(-6)}</span>
+                            <span class="booking-status ${statusClass}">
+                                <i class="fas ${statusIcon}"></i> ${status.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="booking-content">
+                            <div class="booking-room">
+                                <div class="room-icon">
+                                    <i class="fas fa-tree"></i>
+                                </div>
+                                <div class="room-details">
+                                    <h3>${booking.roomName || 'Room'}</h3>
+                                    <div class="room-location">
+                                        <i class="fas fa-map-marker-alt"></i> Lake Naivasha
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="booking-dates">
+                                <div class="date-item">
+                                    <div class="date-label">CHECK-IN</div>
+                                    <div class="date-value">${formatDate(checkIn)}</div>
+                                </div>
+                                <div class="date-separator">
+                                    <i class="fas fa-arrow-right"></i>
+                                </div>
+                                <div class="date-item">
+                                    <div class="date-label">CHECK-OUT</div>
+                                    <div class="date-value">${formatDate(checkOut)}</div>
+                                </div>
+                            </div>
+
+                            <div class="booking-meta">
+                                <div class="meta-item">
+                                    <div class="meta-value">${booking.nights || 0}</div>
+                                    <div class="meta-label">Nights</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="meta-value">${booking.guests || 0}</div>
+                                    <div class="meta-label">Guests</div>
+                                </div>
+                                <div class="meta-item">
+                                    <div class="meta-value">${booking.extras?.length || 0}</div>
+                                    <div class="meta-label">Extras</div>
+                                </div>
+                            </div>
+
+                            <div class="booking-footer">
+                                <div class="booking-price">
+                                    KSH ${(booking.totalAmount || 0).toLocaleString()} 
+                                    <small>total</small>
+                                </div>
+                                <div class="booking-actions" onclick="event.stopPropagation()">
+                                    ${canCancel ? `
+                                        <button class="action-btn cancel-btn" onclick="cancelBooking('${booking.id}')">
+                                            <i class="fas fa-times"></i> Cancel
+                                        </button>
+                                    ` : ''}
+                                    ${canReview ? `
+                                        <button class="action-btn review-btn" onclick="writeReview('${booking.id}', '${booking.roomName}')">
+                                            <i class="fas fa-star"></i> Review
+                                        </button>
+                                    ` : ''}
+                                    <button class="action-btn view-btn" onclick="viewBookingDetails('${booking.id}')">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            bookingsList.innerHTML = html;
+        }
+
+        // Format date
+        function formatDate(date) {
+            if (!date) return 'N/A';
+            const d = date instanceof Date ? date : new Date(date);
+            return d.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric' 
+            });
+        }
+
+        // Show empty state
+        function showEmptyState() {
+            const bookingsList = document.getElementById('bookingsList');
+            
+            const messages = {
+                upcoming: "You don't have any upcoming trips",
+                past: "You haven't completed any trips yet",
+                cancelled: "You don't have any cancelled bookings"
+            };
+
+            bookingsList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-suitcase"></i>
+                    <h3>No ${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)} Trips</h3>
+                    <p>${messages[currentTab] || 'Start planning your safari adventure!'}</p>
+                    <a href="rooms.html" class="browse-btn">
+                        <i class="fas fa-search"></i> Browse Rooms
+                    </a>
+                </div>
+            `;
+        }
+
+        // View booking details
+        function viewBookingDetails(bookingId) {
+            window.location.href = `booking-details.html?id=${bookingId}`;
+        }
+
+        // Cancel booking
+        async function cancelBooking(bookingId) {
+            if (!confirm('Are you sure you want to cancel this booking?')) {
+                return;
+            }
+
+            try {
+                await db.collection("bookings").doc(bookingId).update({
+                    status: 'cancelled'
+                });
+
+                showAlert('Booking cancelled successfully', 'success');
+                
+                // Reload bookings
+                await loadBookings();
+
+            } catch (error) {
+                console.error("Error cancelling booking:", error);
+                showAlert('Error cancelling booking', 'error');
+            }
+        }
+
+        // Write review
+        function writeReview(bookingId, roomName) {
+            window.location.href = `write-review.html?booking=${bookingId}&room=${encodeURIComponent(roomName)}`;
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Contact Us - Siroco Wildlife Sanctuary</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-savanna: #8B6B4D;
+            --secondary-acacia: #5C8D7A;
+            --accent-sunset: #C97C5D;
+            --water-lake: #4A7A9C;
+            --cream-plains: #F5F0E6;
+            --dark-earth: #2C3E4F;
+            --wildlife-gold: #E6B17E;
+            --success-green: #4A7856;
+            --error-red: #C45D5D;
+            --bg-main: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --border-light: #E8E0D5;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-savanna) 0%, var(--secondary-acacia) 100%);
+            color: white;
+            padding: 20px 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-title span {
+            font-size: 12px;
+            display: block;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .cart-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-sunset);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        /* Cart Summary Banner */
+        .cart-summary-banner {
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            color: white;
+            border-radius: 15px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .cart-summary-banner i {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .cart-summary-banner .cart-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-summary-banner .cart-total {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .view-cart-link {
+            background: white;
+            color: var(--secondary-acacia);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* Hero Section */
+        .contact-hero {
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            border-radius: 20px;
+            padding: 30px 20px;
+            margin-bottom: 25px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .contact-hero h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-hero p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-hero i {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            font-size: 120px;
+            opacity: 0.2;
+            color: white;
+        }
+
+        /* Quick Contact Cards */
+        .quick-contact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .quick-contact-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-contact-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--secondary-acacia);
+            background: #f0f9f4;
+        }
+
+        .quick-contact-card i {
+            font-size: 28px;
+            color: var(--secondary-acacia);
+            margin-bottom: 10px;
+        }
+
+        .quick-contact-card h3 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .quick-contact-card p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Contact Cards */
+        .contact-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .contact-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .contact-card:hover {
+            transform: translateX(5px);
+            border-color: var(--secondary-acacia);
+            background: #f0f9f4;
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            background: #f0f9f4;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-acacia);
+            font-size: 24px;
+        }
+
+        .contact-details {
+            flex: 1;
+        }
+
+        .contact-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .contact-value {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-dark);
+        }
+
+        .contact-note {
+            font-size: 11px;
+            color: #999;
+            margin-top: 3px;
+        }
+
+        /* Emergency Contact */
+        .emergency-card {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .emergency-icon {
+            width: 50px;
+            height: 50px;
+            background: #ffc107;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .emergency-content {
+            flex: 1;
+        }
+
+        .emergency-title {
+            font-weight: 700;
+            color: #856404;
+            margin-bottom: 3px;
+        }
+
+        .emergency-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: #856404;
+            text-decoration: none;
+        }
+
+        .emergency-note {
+            font-size: 11px;
+            color: #856404;
+            opacity: 0.8;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 25px 0 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--secondary-acacia);
+        }
+
+        /* Contact Form */
+        .contact-form {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .form-group label i {
+            color: var(--secondary-acacia);
+            margin-right: 5px;
+        }
+
+        .form-group label .required {
+            color: var(--error-red);
+            margin-left: 3px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 12px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .input-wrapper input,
+        .input-wrapper textarea,
+        .input-wrapper select {
+            width: 100%;
+            padding: 12px 12px 12px 35px;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper textarea:focus,
+        .input-wrapper select:focus {
+            outline: none;
+            border-color: var(--secondary-acacia);
+            background: white;
+        }
+
+        .input-wrapper textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .input-wrapper select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        .phone-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .phone-prefix {
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid var(--border-light);
+            color: #666;
+            font-weight: 500;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .phone-input-wrapper .input-wrapper {
+            flex: 1;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Success Message */
+        .success-message {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .success-message i {
+            font-size: 60px;
+            color: var(--success-green);
+            margin-bottom: 15px;
+        }
+
+        .success-message h3 {
+            margin-bottom: 10px;
+            color: var(--success-green);
+        }
+
+        .success-message p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .success-message .response-time {
+            background: #f0f9f4;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 13px;
+            color: var(--secondary-acacia);
+            margin-top: 15px;
+        }
+
+        /* Location & Hours */
+        .info-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .info-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background: #f0f9f4;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-acacia);
+            font-size: 20px;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .info-link {
+            color: var(--secondary-acacia);
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .info-link:hover {
+            text-decoration: underline;
+        }
+
+        .hours-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .hour-item {
+            font-size: 13px;
+        }
+
+        .hour-day {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .hour-time {
+            color: #666;
+        }
+
+        /* Map */
+        .map-container {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary-savanna), var(--secondary-acacia));
+            border-radius: 12px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .map-container i {
+            opacity: 0.3;
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .map-overlay:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        .map-overlay i {
+            margin-right: 8px;
+            opacity: 1;
+        }
+
+        /* Social Links */
+        .social-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .social-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .social-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid var(--border-light);
+        }
+
+        .social-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .social-item.facebook:hover {
+            background: #4267B2;
+            color: white;
+            border-color: #4267B2;
+        }
+
+        .social-item.twitter:hover {
+            background: #1DA1F2;
+            color: white;
+            border-color: #1DA1F2;
+        }
+
+        .social-item.instagram:hover {
+            background: #E4405F;
+            color: white;
+            border-color: #E4405F;
+        }
+
+        .social-item.youtube:hover {
+            background: #FF0000;
+            color: white;
+            border-color: #FF0000;
+        }
+
+        .social-item i {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .social-item:hover i {
+            color: white;
+        }
+
+        .social-item span {
+            font-size: 11px;
+            display: block;
+        }
+
+        /* FAQ Link */
+        .faq-link {
+            background: #f0f9f4;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .faq-link:hover {
+            background: #e0f0e8;
+        }
+
+        .faq-link .faq-text {
+            font-weight: 600;
+            color: var(--secondary-acacia);
+        }
+
+        .faq-link i {
+            color: var(--secondary-acacia);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading i {
+            font-size: 40px;
+            color: var(--secondary-acacia);
+            margin-bottom: 15px;
+        }
+
+        /* Alert */
+        .alert {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.success {
+            border-left: 4px solid var(--success-green);
+        }
+
+        .alert.error {
+            border-left: 4px solid var(--error-red);
+        }
+
+        .alert.info {
+            border-left: 4px solid var(--secondary-acacia);
+        }
+
+        @keyframes slideDown {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 80px;
+                opacity: 1;
+            }
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid var(--border-light);
+            padding: 12px 16px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            border-radius: 30px 30px 0 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+        }
+
+        .nav-item.active {
+            color: var(--secondary-acacia);
+        }
+
+        .nav-item:hover {
+            color: var(--primary-savanna);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <a href="profile.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="header-title">
+                Contact Us
+                <span>Get in touch</span>
+            </div>
+            <a href="cart.html" class="cart-btn" id="cartBtn">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Cart Summary Banner -->
+        <div id="cartSummaryBanner" class="cart-summary-banner" onclick="window.location.href='cart.html'" style="display: none;">
+            <div class="cart-info">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cartItemCount">0</span> items in cart • 
+                <span class="cart-total">KSH <span id="cartTotal">0</span></span>
+            </div>
+            <span class="view-cart-link">View Cart →</span>
+        </div>
+
+        <!-- Hero Section -->
+        <div class="contact-hero">
+            <h1>Get in Touch</h1>
+            <p>We'd love to hear from you</p>
+            <i class="fas fa-envelope-open-text"></i>
+        </div>
+
+        <!-- Quick Contact Cards -->
+        <div class="quick-contact-grid">
+            <div class="quick-contact-card" onclick="window.location.href='tel:+254700123456'">
+                <i class="fas fa-phone"></i>
+                <h3>Call Us</h3>
+                <p>+254 700 123 456</p>
+            </div>
+            <div class="quick-contact-card" onclick="window.location.href='mailto:info@siroco.com'">
+                <i class="fas fa-envelope"></i>
+                <h3>Email Us</h3>
+                <p>info@siroco.com</p>
+            </div>
+            <div class="quick-contact-card" onclick="window.open('https://wa.me/254700123456')">
+                <i class="fab fa-whatsapp"></i>
+                <h3>WhatsApp</h3>
+                <p>+254 700 123 456</p>
+            </div>
+            <div class="quick-contact-card" onclick="window.location.href='https://m.me/siroco'">
+                <i class="fab fa-facebook-messenger"></i>
+                <h3>Messenger</h3>
+                <p>@siroco</p>
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="emergency-card">
+            <div class="emergency-icon">
+                <i class="fas fa-phone-alt"></i>
+            </div>
+            <div class="emergency-content">
+                <div class="emergency-title">24/7 Emergency Support</div>
+                <a href="tel:+254700123456" class="emergency-number">+254 700 123 456</a>
+                <div class="emergency-note">For urgent on-site assistance only</div>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="contact-form" id="contactForm">
+            <div class="section-title">
+                <i class="fas fa-paper-plane"></i>
+                Send us a Message
+            </div>
+
+            <form id="contactFormElement" onsubmit="event.preventDefault(); submitContactForm()">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Full Name <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="contactName" placeholder="Enter your full name" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email Address <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="contactEmail" placeholder="Enter your email" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Phone Number</label>
+                    <div class="phone-input-wrapper">
+                        <span class="phone-prefix">+254</span>
+                        <div class="input-wrapper">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" id="contactPhone" placeholder="712345678">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Subject <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-tag"></i>
+                        <select id="contactSubject" required>
+                            <option value="">Select a subject</option>
+                            <option value="general">General Inquiry</option>
+                            <option value="booking">Booking Question</option>
+                            <option value="cancellation">Cancellation Request</option>
+                            <option value="feedback">Feedback</option>
+                            <option value="complaint">Complaint</option>
+                            <option value="partnership">Partnership Opportunity</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Message <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-comment"></i>
+                        <textarea id="contactMessage" placeholder="How can we help you?" required></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i> Send Message
+                </button>
+            </form>
+        </div>
+
+        <!-- Contact Details -->
+        <div class="contact-cards">
+            <div class="contact-card" onclick="window.location.href='tel:+254700123456'">
+                <div class="contact-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="contact-details">
+                    <div class="contact-label">Phone</div>
+                    <div class="contact-value">+254 700 123 456</div>
+                    <div class="contact-note">Available 24/7</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: #999;"></i>
+            </div>
+
+            <div class="contact-card" onclick="window.location.href='mailto:info@siroco.com'">
+                <div class="contact-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="contact-details">
+                    <div class="contact-label">Email</div>
+                    <div class="contact-value">info@siroco.com</div>
+                    <div class="contact-note">Response within 24 hours</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: #999;"></i>
+            </div>
+
+            <div class="contact-card" onclick="window.open('https://wa.me/254700123456')">
+                <div class="contact-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <div class="contact-details">
+                    <div class="contact-label">WhatsApp</div>
+                    <div class="contact-value">+254 700 123 456</div>
+                    <div class="contact-note">Message us anytime</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: #999;"></i>
+            </div>
+
+            <div class="contact-card" onclick="window.location.href='https://m.me/siroco'">
+                <div class="contact-icon">
+                    <i class="fab fa-facebook-messenger"></i>
+                </div>
+                <div class="contact-details">
+                    <div class="contact-label">Messenger</div>
+                    <div class="contact-value">@siroco</div>
+                    <div class="contact-note">Facebook Messenger</div>
+                </div>
+                <i class="fas fa-chevron-right" style="color: #999;"></i>
+            </div>
+        </div>
+
+        <!-- Location & Hours -->
+        <div class="info-card">
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-title">Visit Us</div>
+                    <div class="info-text">
+                        Siroco Wildlife Sanctuary<br>
+                        Lake Naivasha, Kenya<br>
+                        P.O. Box 123-20117
+                    </div>
+                    <a href="https://maps.google.com/?q=Lake+Naivasha+Kenya" target="_blank" class="info-link">
+                        <i class="fas fa-directions"></i> Get Directions
+                    </a>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="info-content">
+                    <div class="info-title">Office Hours</div>
+                    <div class="hours-grid">
+                        <div class="hour-item">
+                            <div class="hour-day">Mon - Fri</div>
+                            <div class="hour-time">8:00 AM - 6:00 PM</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour-day">Saturday</div>
+                            <div class="hour-time">9:00 AM - 4:00 PM</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour-day">Sunday</div>
+                            <div class="hour-time">10:00 AM - 2:00 PM</div>
+                        </div>
+                        <div class="hour-item">
+                            <div class="hour-day">Public Holidays</div>
+                            <div class="hour-time">Closed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="info-card">
+            <div class="info-title" style="margin-bottom: 10px;">Find Us Here</div>
+            <div class="map-container" onclick="window.open('https://maps.google.com/?q=Lake+Naivasha+Kenya')">
+                <i class="fas fa-map-marked-alt"></i>
+                <div class="map-overlay">
+                    <i class="fas fa-map-pin"></i> Open in Google Maps
+                </div>
+            </div>
+            <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                <i class="fas fa-car" style="color: var(--secondary-acacia);"></i> 
+                Approximately 90km from Nairobi (1.5 hour drive)
+            </p>
+        </div>
+
+        <!-- Social Media -->
+        <div class="social-section">
+            <div class="section-title">
+                <i class="fas fa-hashtag"></i>
+                Follow Us
+            </div>
+            <div class="social-grid">
+                <div class="social-item facebook" onclick="window.open('https://facebook.com/siroco')">
+                    <i class="fab fa-facebook-f"></i>
+                    <span>Facebook</span>
+                </div>
+                <div class="social-item twitter" onclick="window.open('https://twitter.com/siroco')">
+                    <i class="fab fa-twitter"></i>
+                    <span>Twitter</span>
+                </div>
+                <div class="social-item instagram" onclick="window.open('https://instagram.com/siroco')">
+                    <i class="fab fa-instagram"></i>
+                    <span>Instagram</span>
+                </div>
+                <div class="social-item youtube" onclick="window.open('https://youtube.com/siroco')">
+                    <i class="fab fa-youtube"></i>
+                    <span>YouTube</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ Link -->
+        <div class="faq-link" onclick="window.location.href='help.html'">
+            <span class="faq-text"><i class="fas fa-question-circle"></i> Visit our FAQ page</span>
+            <i class="fas fa-arrow-right"></i>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="rooms.html" class="nav-item">
+            <i class="fas fa-bed"></i>
+            <span>Rooms</span>
+        </a>
+        <a href="food.html" class="nav-item">
+            <i class="fas fa-utensils"></i>
+            <span>Food</span>
+        </a>
+        <a href="activities.html" class="nav-item">
+            <i class="fas fa-hiking"></i>
+            <span>Activities</span>
+        </a>
+        <a href="profile.html" class="nav-item active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
+            authDomain: "sirocco-6668e.firebaseapp.com",
+            projectId: "sirocco-6668e",
+            storageBucket: "sirocco-6668e.firebasestorage.app",
+            messagingSenderId: "892213068784",
+            appId: "1:892213068784:web:5b4021e7fbe638999e5335",
+            measurementId: "G-BPCVPVC9R7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global variables
+        let currentUser = null;
+
+        // Check if user is logged in
+        function checkAuth() {
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                console.log("✅ User logged in:", currentUser.email);
+                loadCartSummary();
+                loadCartCount();
+                fillUserDetails();
+            }
+        }
+
+        // Fill user details in form
+        function fillUserDetails() {
+            if (currentUser) {
+                document.getElementById('contactName').value = currentUser.fullName || '';
+                document.getElementById('contactEmail').value = currentUser.email || '';
+                
+                const phone = currentUser.phone || '';
+                document.getElementById('contactPhone').value = phone.replace(/^0/, '').replace('+254', '');
+            }
+        }
+
+        // Submit contact form
+        async function submitContactForm() {
+            const name = document.getElementById('contactName').value.trim();
+            const email = document.getElementById('contactEmail').value.trim();
+            const phone = document.getElementById('contactPhone').value.trim();
+            const subject = document.getElementById('contactSubject').value;
+            const message = document.getElementById('contactMessage').value.trim();
+
+            if (!name || !email || !subject || !message) {
+                showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showAlert('Please enter a valid email address', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            try {
+                // Format phone number
+                const formattedPhone = phone ? (phone.startsWith('0') ? phone : '0' + phone) : '';
+
+                // Save to Firestore
+                await db.collection("contact_messages").add({
+                    userId: currentUser?.uid || 'guest',
+                    userName: name,
+                    userEmail: email,
+                    userPhone: formattedPhone,
+                    subject: subject,
+                    message: message,
+                    status: 'new',
+                    source: 'contact_page',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Also send email notification (simulated)
+                console.log("Email notification would be sent to admin");
+
+                // Show success message
+                const form = document.getElementById('contactForm');
+                form.innerHTML = `
+                    <div class="success-message">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>Message Sent!</h3>
+                        <p>Thank you for contacting us, ${name}. We'll get back to you within 24 hours.</p>
+                        <div class="response-time">
+                            <i class="fas fa-clock"></i> Typical response time: 2-4 hours
+                        </div>
+                        <button class="submit-btn" onclick="resetForm()" style="margin-top: 20px;">
+                            <i class="fas fa-redo"></i> Send Another Message
+                        </button>
+                    </div>
+                `;
+
+                showAlert('Message sent successfully!', 'success');
+
+            } catch (error) {
+                console.error("Error sending message:", error);
+                showAlert('Error sending message. Please try again.', 'error');
+                
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            location.reload();
+        }
+
+        // Load cart summary
+        async function loadCartSummary() {
+            if (!currentUser) return;
+            
+            try {
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+
+                if (!snapshot.empty) {
+                    let total = 0;
+                    snapshot.forEach(doc => {
+                        const item = doc.data();
+                        const price = item.price || 0;
+                        const quantity = item.quantity || 1;
+                        total += price * quantity;
+                    });
+
+                    document.getElementById('cartSummaryBanner').style.display = 'flex';
+                    document.getElementById('cartItemCount').textContent = snapshot.size;
+                    document.getElementById('cartTotal').textContent = total.toLocaleString();
+                }
+            } catch (error) {
+                console.error("Error loading cart summary:", error);
+            }
+        }
+
+        // Load cart count
+        async function loadCartCount() {
+            if (!currentUser) {
+                document.getElementById('cartBadge').textContent = '0';
+                return;
+            }
+            
+            try {
+                const snapshot = await db.collection("cart")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
+                
+                document.getElementById('cartBadge').textContent = snapshot.size;
+            } catch (error) {
+                console.error("Error loading cart count:", error);
+                document.getElementById('cartBadge').textContent = '0';
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>
