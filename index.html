@@ -1061,7 +1061,7 @@
                 const user = JSON.parse(currentUser);
                 console.log('✅ User logged in:', user);
                 
-                authMessage.innerHTML = `<i class="fas fa-check-circle"></i> Logged in as ${user.email || user.fullName}`;
+                authMessage.innerHTML = `<i class="fas fa-check-circle"></i> Welcome ${user.email || user.fullName}`;
                 
                 authButtons.innerHTML = `
                     <span class="auth-button" style="background: transparent; border: 2px solid var(--secondary-acacia); color: var(--secondary-acacia); cursor: default;">
@@ -1555,3 +1555,4 @@
 </body>
 
 </html>
+
