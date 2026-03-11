@@ -162,7 +162,7 @@
             color: #999;
         }
 
-        /* Auth Status Bar */
+        /* Auth Status Bar - FIXED */
         .auth-status {
             background: var(--card-bg);
             border-radius: 15px;
@@ -170,14 +170,19 @@
             margin: 10px 0 20px 0;
             border: 1px solid var(--border-light);
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            min-height: 60px;
         }
 
         .auth-message {
             font-size: 14px;
             color: var(--text-dark);
+            flex: 1;
+            min-width: 140px;
         }
 
         .auth-message i {
@@ -185,17 +190,30 @@
             margin-right: 8px;
         }
 
+        /* FIXED: Button container with proper spacing */
+        #authButtons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
         .auth-button {
             background: var(--secondary-acacia);
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 8px 12px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             transition: all 0.3s;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 70px;
         }
 
         .auth-button:hover {
@@ -308,7 +326,7 @@
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+            gap: 8px;
             margin: 24px 0;
             padding: 0 4px;
         }
@@ -316,7 +334,7 @@
         .action-card {
             background: var(--card-bg);
             border-radius: 16px;
-            padding: 16px 8px;
+            padding: 12px 4px;
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             transition: transform 0.3s, box-shadow 0.3s;
@@ -332,13 +350,13 @@
         }
 
         .action-icon {
-            font-size: 28px;
+            font-size: 24px;
             color: var(--secondary-acacia);
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .action-label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             color: var(--text-dark);
         }
@@ -601,7 +619,7 @@
         .bottom-nav {
             background: white;
             border-top: 1px solid var(--border-light);
-            padding: 12px 16px;
+            padding: 12px 8px;
             position: fixed;
             bottom: 0;
             left: 0;
@@ -619,16 +637,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             color: #999;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
             transition: color 0.3s;
             text-decoration: none;
         }
 
         .nav-item i {
-            font-size: 22px;
+            font-size: 20px;
         }
 
         .nav-item.active {
@@ -852,7 +870,7 @@
         <!-- Alert Container (for messages) -->
         <div id="alertContainer"></div>
 
-        <!-- Auth Status Bar (always visible) -->
+        <!-- Auth Status Bar (always visible) - FIXED -->
         <div class="auth-status" id="authStatus">
             <div class="auth-message">
                 <i class="fas fa-user-circle"></i>
@@ -1535,4 +1553,5 @@
         console.log('✅ Firebase initialized with new project:', firebaseConfig.projectId);
     </script>
 </body>
+
 </html>
