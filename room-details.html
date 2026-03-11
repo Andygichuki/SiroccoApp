@@ -10,7 +10,6 @@
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     
     <!-- Flatpickr for Date Picker -->
@@ -853,9 +852,9 @@
                         <i class="fas fa-cart-plus"></i>
                         Cart
                     </button>
-                    <button class="book-now-btn" onclick="proceedToBooking()" id="bookNowBtn">
-                        <i class="fas fa-calendar-check"></i>
-                        Book Now
+                    <button class="book-now-btn" onclick="proceedToCheckout()" id="bookNowBtn">
+                        <i class="fas fa-credit-card"></i>
+                        Checkout
                     </button>
                 </div>
             </div>
@@ -927,9 +926,8 @@
             measurementId: "G-BPCVPVC9R7"
         };
 
-        // Initialize Firebase
+        // Initialize Firebase (NO AUTH - only Firestore)
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const db = firebase.firestore();
 
         // Get room ID from URL
@@ -944,43 +942,19 @@
         let bookedDates = [];
         let currentUser = null;
 
-        // Check if user is logged in
+        // Check if user is logged in (localStorage only - NO FIREBASE AUTH)
         function checkAuth() {
             const storedUser = localStorage.getItem('currentUser');
             if (storedUser) {
                 currentUser = JSON.parse(storedUser);
-                signInToFirebase();
-            } else {
-                // Still load room details, but disable booking buttons
-                loadRoomDetails();
-            }
-        }
-
-        // Sign in to Firebase Auth
-        async function signInToFirebase() {
-            try {
-                await auth.signInWithEmailAndPassword(currentUser.email, currentUser.password);
-                console.log("✅ Signed in to Firebase Auth");
-                loadRoomDetails();
+                console.log("✅ User logged in:", currentUser.email);
                 loadCartSummary();
                 loadCartCount();
-            } catch (error) {
-                console.error("❌ Firebase Auth error:", error);
-                if (error.code === 'auth/user-not-found') {
-                    try {
-                        await auth.createUserWithEmailAndPassword(currentUser.email, currentUser.password);
-                        console.log("✅ Created Firebase Auth account");
-                        loadRoomDetails();
-                        loadCartSummary();
-                        loadCartCount();
-                    } catch (createError) {
-                        console.error("❌ Could not create auth account:", createError);
-                        loadRoomDetails();
-                    }
-                } else {
-                    loadRoomDetails();
-                }
+            } else {
+                console.log("❌ User not logged in - viewing as guest");
+                // Still load room details, just no cart features
             }
+            loadRoomDetails();
         }
 
         // Load cart summary
@@ -1308,10 +1282,10 @@
             }
         }
 
-        // Proceed to booking
-        function proceedToBooking() {
+        // Proceed directly to checkout (simulate payment)
+        function proceedToCheckout() {
             if (!currentUser) {
-                showAlert("Please login to book this room", "error");
+                showAlert("Please login to checkout", "error");
                 setTimeout(() => window.location.href = "login.html", 1500);
                 return;
             }
@@ -1330,7 +1304,7 @@
                 return;
             }
 
-            // Store booking details in localStorage
+            // Create booking details
             const bookingDetails = {
                 roomId: roomId,
                 roomName: currentRoom.name,
@@ -1344,8 +1318,67 @@
                 total: currentRoom.pricepernight * nights + Math.round(currentRoom.pricepernight * nights * 0.1)
             };
 
+            // Store in localStorage for checkout page
             localStorage.setItem('currentBooking', JSON.stringify(bookingDetails));
-            window.location.href = `booking.html?room=${roomId}`;
+            
+            // Simulate payment processing
+            simulatePayment(bookingDetails);
+        }
+
+        // Simulate payment
+        async function simulatePayment(bookingDetails) {
+            showAlert("Processing payment...", "info");
+            
+            // Show loading on button
+            const bookBtn = document.getElementById('bookNowBtn');
+            const originalText = bookBtn.innerHTML;
+            bookBtn.disabled = true;
+            bookBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            // Simulate payment delay
+            setTimeout(async () => {
+                try {
+                    // Create booking in Firestore
+                    const bookingData = {
+                        userId: currentUser.uid,
+                        userEmail: currentUser.email,
+                        userName: currentUser.fullName || 'Guest',
+                        userPhone: currentUser.phone || '',
+                        roomId: bookingDetails.roomId,
+                        roomName: bookingDetails.roomName,
+                        checkIn: new Date(bookingDetails.checkIn),
+                        checkOut: new Date(bookingDetails.checkOut),
+                        guests: bookingDetails.guests,
+                        nights: bookingDetails.nights,
+                        pricePerNight: bookingDetails.roomPrice,
+                        subtotal: bookingDetails.subtotal,
+                        serviceFee: bookingDetails.serviceFee,
+                        totalAmount: bookingDetails.total,
+                        status: 'confirmed',
+                        paymentStatus: 'paid',
+                        paymentMethod: 'simulated',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+
+                    // Save to Firestore
+                    const docRef = await db.collection("bookings").add(bookingData);
+                    console.log("✅ Booking created:", docRef.id);
+
+                    showAlert("✅ Payment successful! Booking confirmed.", "success");
+
+                    // Redirect to my trips
+                    setTimeout(() => {
+                        window.location.href = "my-trips.html";
+                    }, 2000);
+
+                } catch (error) {
+                    console.error("❌ Error creating booking:", error);
+                    showAlert("Payment failed: " + error.message, "error");
+                    
+                    bookBtn.disabled = false;
+                    bookBtn.innerHTML = originalText;
+                }
+            }, 2000);
         }
 
         // Show alert
@@ -1363,7 +1396,10 @@
 
         // Load cart count
         async function loadCartCount() {
-            if (!currentUser) return;
+            if (!currentUser) {
+                document.getElementById('cartBadge').textContent = '0';
+                return;
+            }
             
             try {
                 const snapshot = await db.collection("cart")
@@ -1373,6 +1409,7 @@
                 document.getElementById('cartBadge').textContent = snapshot.size;
             } catch (error) {
                 console.error("Error loading cart:", error);
+                document.getElementById('cartBadge').textContent = '0';
             }
         }
 
@@ -1380,4 +1417,5 @@
         checkAuth();
     </script>
 </body>
+
 </html>
