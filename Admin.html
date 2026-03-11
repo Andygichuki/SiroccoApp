@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Admin Dashboard - Siroco Wildlife Sanctuary</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-savanna: #8B6B4D;
+            --secondary-acacia: #5C8D7A;
+            --accent-sunset: #C97C5D;
+            --water-lake: #4A7A9C;
+            --cream-plains: #F5F0E6;
+            --dark-earth: #2C3E4F;
+            --wildlife-gold: #E6B17E;
+            --success-green: #4A7856;
+            --error-red: #C45D5D;
+            --bg-main: #FAF7F2;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E2F;
+            --border-light: #E8E0D5;
+            --admin-blue: #1a73e8;
+            --admin-dark: #202124;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+            font-family: 'Segoe UI', monospace;
+        }
+
+        /* Login Page Styles */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-light);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header i {
+            font-size: 50px;
+            color: var(--secondary-acacia);
+            margin-bottom: 15px;
+        }
+
+        .login-header h2 {
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        .login-form label i {
+            color: var(--secondary-acacia);
+            margin-right: 5px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--secondary-acacia);
+            box-shadow: 0 0 0 3px rgba(92,141,122,0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            background: var(--secondary-acacia);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .login-btn:hover {
+            background: var(--primary-savanna);
+        }
+
+        .login-error {
+            color: var(--error-red);
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        /* Admin Dashboard Styles */
+        .admin-header {
+            background: linear-gradient(135deg, #2C3E4F, #1a2634);
+            color: white;
+            padding: 20px 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .admin-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-logo i {
+            font-size: 28px;
+            color: var(--wildlife-gold);
+        }
+
+        .admin-logo-text h1 {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .admin-logo-text p {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-user-info {
+            text-align: right;
+        }
+
+        .admin-user-name {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .admin-user-email {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .admin-logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+        }
+
+        .admin-logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 16px 80px;
+        }
+
+        /* Stats Cards */
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: #f0f9f4;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-acacia);
+            font-size: 24px;
+        }
+
+        .stat-info h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        /* Collection Tabs */
+        .collection-tabs {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0 15px;
+            margin-bottom: 20px;
+            scrollbar-width: thin;
+        }
+
+        .collection-tab {
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .collection-tab i {
+            color: var(--secondary-acacia);
+        }
+
+        .collection-tab.active {
+            background: var(--secondary-acacia);
+            color: white;
+        }
+
+        .collection-tab.active i {
+            color: white;
+        }
+
+        .collection-tab .doc-count {
+            background: rgba(0,0,0,0.1);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+
+        .collection-tab.active .doc-count {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Data Table */
+        .data-table-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-title i {
+            color: var(--secondary-acacia);
+        }
+
+        .refresh-btn {
+            background: none;
+            border: 1px solid var(--border-light);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: var(--secondary-acacia);
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            background: #f8f9fa;
+            color: #444;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: top;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .document-id {
+            font-family: monospace;
+            color: var(--admin-blue);
+            font-size: 12px;
+            word-break: break-all;
+        }
+
+        .json-data {
+            font-family: monospace;
+            font-size: 11px;
+            color: #666;
+            max-width: 300px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .timestamp-badge {
+            background: #e3f2fd;
+            color: #0d47a1;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: inline-block;
+        }
+
+        .boolean-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: inline-block;
+        }
+
+        .boolean-true {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .boolean-false {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .array-badge {
+            background: #fff3cd;
+            color: #856404;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            cursor: help;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .loading i {
+            font-size: 40px;
+            color: var(--secondary-acacia);
+            margin-bottom: 15px;
+        }
+
+        /* Alert */
+        .alert {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert.success {
+            border-left: 4px solid var(--success-green);
+        }
+
+        .alert.error {
+            border-left: 4px solid var(--error-red);
+        }
+
+        .alert.info {
+            border-left: 4px solid var(--secondary-acacia);
+        }
+
+        @keyframes slideDown {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 80px;
+                opacity: 1;
+            }
+        }
+
+        /* No Data */
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .no-data i {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        /* Back to Home */
+        .back-home {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--secondary-acacia);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Login Page -->
+    <div id="loginPage" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <i class="fas fa-database"></i>
+                <h2>Admin Dashboard</h2>
+                <p>Enter your admin credentials to access the database viewer</p>
+            </div>
+            
+            <div class="login-form">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="adminEmail" placeholder="admin@siroco.com" value="naivandygg@gmail.com">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="adminPassword" placeholder="••••••••" value="123456">
+                </div>
+                
+                <button class="login-btn" onclick="adminLogin()">
+                    <i class="fas fa-sign-in-alt"></i> Access Database
+                </button>
+                
+                <div id="loginError" class="login-error">
+                    Invalid credentials. Admin access only.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard (hidden by default) -->
+    <div id="adminDashboard" style="display: none;">
+        <!-- Admin Header -->
+        <div class="admin-header">
+            <div class="admin-header-top">
+                <div class="admin-logo">
+                    <i class="fas fa-tree"></i>
+                    <div class="admin-logo-text">
+                        <h1>Siroco Admin</h1>
+                        <p>Database Management</p>
+                    </div>
+                </div>
+                
+                <div class="admin-user">
+                    <div class="admin-user-info">
+                        <div class="admin-user-name" id="adminName">Admin User</div>
+                        <div class="admin-user-email" id="adminEmail">admin@siroco.com</div>
+                    </div>
+                    <button class="admin-logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-container">
+            <!-- Stats Cards -->
+            <div class="admin-stats" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Collections</h3>
+                        <div class="stat-number" id="totalCollections">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Documents</h3>
+                        <div class="stat-number" id="totalDocuments">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Users</h3>
+                        <div class="stat-number" id="totalUsers">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Bookings</h3>
+                        <div class="stat-number" id="totalBookings">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collection Tabs -->
+            <div class="collection-tabs" id="collectionTabs"></div>
+
+            <!-- Data Table -->
+            <div class="data-table-container">
+                <div class="table-header">
+                    <div class="table-title">
+                        <i class="fas fa-table"></i>
+                        <span id="currentCollection">Select a collection</span>
+                    </div>
+                    <button class="refresh-btn" onclick="loadCollection(currentCollection)">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+
+                <div id="dataTableContainer">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Select a collection to view data</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Home Link -->
+    <a href="index.html" class="back-home">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
+            authDomain: "sirocco-6668e.firebaseapp.com",
+            projectId: "sirocco-6668e",
+            storageBucket: "sirocco-6668e.firebasestorage.app",
+            messagingSenderId: "892213068784",
+            appId: "1:892213068784:web:5b4021e7fbe638999e5335",
+            measurementId: "G-BPCVPVC9R7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Global variables
+        let adminUser = null;
+        let currentCollection = null;
+        let collections = [
+            'users',
+            'rooms', 
+            'food_items', 
+            'activities', 
+            'bookings', 
+            'cart', 
+            'contact_messages',
+            'reviews',
+            'wildlife_sightings'
+        ];
+
+        // Admin login function
+        async function adminLogin() {
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+
+            try {
+                // Query users collection for admin credentials
+                const snapshot = await db.collection('users')
+                    .where('email', '==', email)
+                    .where('password', '==', password)
+                    .get();
+
+                if (snapshot.empty) {
+                    document.getElementById('loginError').style.display = 'block';
+                    return;
+                }
+
+                // Get user data
+                const userDoc = snapshot.docs[0];
+                const userData = userDoc.data();
+
+                // Check if user is admin (you can add an admin flag to users)
+                // For now, we'll allow access and check if email contains 'admin'
+                // You can modify this logic based on your needs
+                
+                adminUser = {
+                    uid: userDoc.id,
+                    ...userData
+                };
+
+                // Hide login, show dashboard
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+
+                // Update admin info
+                document.getElementById('adminName').textContent = adminUser.fullName || 'Admin User';
+                document.getElementById('adminEmail').textContent = adminUser.email;
+
+                // Load dashboard data
+                loadDashboardStats();
+                renderCollectionTabs();
+
+            } catch (error) {
+                console.error("Login error:", error);
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            adminUser = null;
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('adminDashboard').style.display = 'none';
+        }
+
+        // Load dashboard statistics
+        async function loadDashboardStats() {
+            try {
+                let totalDocuments = 0;
+                let totalUsers = 0;
+                let totalBookings = 0;
+
+                for (const collection of collections) {
+                    const snapshot = await db.collection(collection).get();
+                    totalDocuments += snapshot.size;
+                    
+                    if (collection === 'users') totalUsers = snapshot.size;
+                    if (collection === 'bookings') totalBookings = snapshot.size;
+                }
+
+                document.getElementById('totalCollections').textContent = collections.length;
+                document.getElementById('totalDocuments').textContent = totalDocuments;
+                document.getElementById('totalUsers').textContent = totalUsers;
+                document.getElementById('totalBookings').textContent = totalBookings;
+
+            } catch (error) {
+                console.error("Error loading stats:", error);
+                showAlert('Error loading statistics', 'error');
+            }
+        }
+
+        // Render collection tabs
+        async function renderCollectionTabs() {
+            const tabsContainer = document.getElementById('collectionTabs');
+            tabsContainer.innerHTML = '';
+
+            for (const collection of collections) {
+                try {
+                    const snapshot = await db.collection(collection).limit(1).get();
+                    const tab = document.createElement('div');
+                    tab.className = 'collection-tab';
+                    if (collection === currentCollection) tab.classList.add('active');
+                    
+                    // Set icon based on collection name
+                    let icon = 'fa-database';
+                    if (collection.includes('user')) icon = 'fa-users';
+                    else if (collection.includes('room')) icon = 'fa-bed';
+                    else if (collection.includes('food')) icon = 'fa-utensils';
+                    else if (collection.includes('activ')) icon = 'fa-hiking';
+                    else if (collection.includes('booking')) icon = 'fa-calendar-check';
+                    else if (collection.includes('cart')) icon = 'fa-shopping-cart';
+                    else if (collection.includes('message')) icon = 'fa-envelope';
+                    else if (collection.includes('review')) icon = 'fa-star';
+                    else if (collection.includes('wildlife')) icon = 'fa-paw';
+                    
+                    tab.innerHTML = `
+                        <i class="fas ${icon}"></i>
+                        ${collection.replace('_', ' ')}
+                        <span class="doc-count">${snapshot.size}</span>
+                    `;
+                    
+                    tab.onclick = () => loadCollection(collection);
+                    tabsContainer.appendChild(tab);
+                } catch (error) {
+                    console.error(`Error loading ${collection}:`, error);
+                }
+            }
+        }
+
+        // Load collection data
+        async function loadCollection(collectionName) {
+            currentCollection = collectionName;
+            document.getElementById('currentCollection').textContent = 
+                collectionName.replace('_', ' ').toUpperCase();
+
+            // Update active tab
+            document.querySelectorAll('.collection-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event?.currentTarget?.classList.add('active');
+
+            const container = document.getElementById('dataTableContainer');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Loading data...</p></div>';
+
+            try {
+                const snapshot = await db.collection(collectionName).get();
+                
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div class="no-data">
+                            <i class="fas fa-database"></i>
+                            <p>No documents found in ${collectionName}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Get all field names from all documents
+                const fieldSet = new Set();
+                const documents = [];
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    documents.push({
+                        id: doc.id,
+                        ...data
+                    });
+                    
+                    Object.keys(data).forEach(key => fieldSet.add(key));
+                });
+
+                const fields = Array.from(fieldSet).sort();
+
+                // Build table
+                let tableHtml = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Document ID</th>
+                                ${fields.map(field => `<th>${field}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                documents.forEach(doc => {
+                    tableHtml += '<tr>';
+                    
+                    // Document ID
+                    tableHtml += `<td><span class="document-id">${doc.id}</span></td>`;
+                    
+                    // Fields
+                    fields.forEach(field => {
+                        const value = doc[field];
+                        tableHtml += '<td>';
+                        
+                        if (value === null || value === undefined) {
+                            tableHtml += '<span style="color: #999;">null</span>';
+                        } else if (value && typeof value === 'object') {
+                            if (value.toDate) {
+                                // Firestore timestamp
+                                const date = value.toDate();
+                                tableHtml += `<span class="timestamp-badge">${date.toLocaleString()}</span>`;
+                            } else if (Array.isArray(value)) {
+                                // Array
+                                tableHtml += `<span class="array-badge" title="${JSON.stringify(value)}">Array[${value.length}]</span>`;
+                            } else {
+                                // Object
+                                tableHtml += `<pre class="json-data">${JSON.stringify(value, null, 2)}</pre>`;
+                            }
+                        } else if (typeof value === 'boolean') {
+                            tableHtml += `<span class="boolean-badge ${value ? 'boolean-true' : 'boolean-false'}">${value}</span>`;
+                        } else {
+                            tableHtml += value;
+                        }
+                        
+                        tableHtml += '</td>';
+                    });
+                    
+                    tableHtml += '</tr>';
+                });
+
+                tableHtml += '</tbody></table>';
+                container.innerHTML = tableHtml;
+
+            } catch (error) {
+                console.error("Error loading collection:", error);
+                container.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-triangle" style="color: var(--error-red);"></i>
+                        <p>Error loading data: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(alert);
+
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Check if user is already logged in (optional)
+        // You can implement session storage if needed
+    </script>
+</body>
+</html>
