@@ -17,6 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     
     <style>
+        /* (Keep all your existing styles) */
         * {
             margin: 0;
             padding: 0;
@@ -348,6 +349,20 @@
         .date-input input:focus {
             outline: none;
             border-color: var(--secondary-acacia);
+        }
+
+        .date-input input.unavailable {
+            border-color: var(--error-red);
+            background: #fff0f0;
+        }
+
+        .unavailable-message {
+            color: var(--error-red);
+            font-size: 12px;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         /* Guest Selector */
@@ -740,6 +755,28 @@
         .nav-item:hover {
             color: var(--primary-savanna);
         }
+
+        /* Availability Indicator */
+        .availability-indicator {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            font-size: 13px;
+        }
+
+        .available-dates {
+            color: var(--success-green);
+        }
+
+        .unavailable-dates {
+            color: var(--error-red);
+        }
+
+        .date-checking {
+            color: var(--secondary-acacia);
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -820,6 +857,17 @@
                             <label>Check-out</label>
                             <input type="text" id="checkOut" placeholder="Select date" readonly>
                         </div>
+                    </div>
+
+                    <!-- Availability Message -->
+                    <div id="availabilityMessage" class="unavailable-message" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="availabilityMessageText"></span>
+                    </div>
+
+                    <!-- Availability Indicator -->
+                    <div id="availabilityIndicator" class="availability-indicator" style="display: none;">
+                        <div id="availabilityContent"></div>
                     </div>
 
                     <div class="guest-selector">
@@ -1034,6 +1082,8 @@
         let selectedExtras = [];
         let totalExtrasPrice = 0;
         let currentUser = null;
+        let unavailableDatesCache = new Map(); // Cache unavailable dates per room
+        let isCheckingAvailability = false;
 
         // Extras data
         const extras = [
@@ -1087,7 +1137,11 @@
             onChange: function(selectedDates, dateStr) {
                 checkInDate = dateStr;
                 updateCheckOutMinDate();
-                validateStep1();
+                if (selectedRoom) {
+                    checkAvailability();
+                } else {
+                    validateStep1();
+                }
             }
         });
 
@@ -1096,7 +1150,11 @@
             dateFormat: "Y-m-d",
             onChange: function(selectedDates, dateStr) {
                 checkOutDate = dateStr;
-                validateStep1();
+                if (selectedRoom && checkInDate) {
+                    checkAvailability();
+                } else {
+                    validateStep1();
+                }
             }
         });
 
@@ -1104,6 +1162,12 @@
             if (checkInDate) {
                 const checkOutPicker = document.getElementById("checkOut")._flatpickr;
                 checkOutPicker.set("minDate", checkInDate);
+                
+                // Clear checkout if it's before new min date
+                if (checkOutDate && new Date(checkOutDate) <= new Date(checkInDate)) {
+                    checkOutDate = null;
+                    checkOutPicker.clear();
+                }
             }
         }
 
@@ -1210,18 +1274,136 @@
 
             document.getElementById('guestPlus').disabled = guestCount >= (selectedRoom?.capacity || 10);
             
-            validateStep1();
-            updatePricing();
+            // Check availability if dates are already selected
+            if (checkInDate && checkOutDate) {
+                checkAvailability();
+            } else {
+                validateStep1();
+            }
+        }
+
+        // Check room availability for selected dates
+        async function checkAvailability() {
+            if (!selectedRoom || !checkInDate || !checkOutDate) {
+                return false;
+            }
+
+            const availabilityMsg = document.getElementById('availabilityMessage');
+            const availabilityIndicator = document.getElementById('availabilityIndicator');
+            const nextBtn = document.getElementById('nextBtn');
+            const checkInInput = document.getElementById('checkIn');
+            const checkOutInput = document.getElementById('checkOut');
+
+            // Show checking status
+            availabilityMsg.style.display = 'flex';
+            availabilityMsg.className = 'unavailable-message date-checking';
+            document.getElementById('availabilityMessageText').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking availability...';
+            nextBtn.disabled = true;
+
+            try {
+                const checkIn = new Date(checkInDate);
+                const checkOut = new Date(checkOutDate);
+                
+                // Query for overlapping bookings
+                const bookingsRef = db.collection("bookings");
+                const snapshot = await bookingsRef
+                    .where("roomId", "==", selectedRoom.id)
+                    .where("status", "in", ["confirmed", "pending"])
+                    .get();
+
+                let isAvailable = true;
+                let conflictingDates = [];
+
+                snapshot.forEach(doc => {
+                    const booking = doc.data();
+                    const bookingCheckIn = booking.checkIn?.toDate ? booking.checkIn.toDate() : new Date(booking.checkIn);
+                    const bookingCheckOut = booking.checkOut?.toDate ? booking.checkOut.toDate() : new Date(booking.checkOut);
+
+                    // Check for date overlap
+                    if (checkIn < bookingCheckOut && checkOut > bookingCheckIn) {
+                        isAvailable = false;
+                        conflictingDates.push({
+                            checkIn: bookingCheckIn,
+                            checkOut: bookingCheckOut
+                        });
+                    }
+                });
+
+                if (isAvailable) {
+                    // Room is available
+                    availabilityMsg.style.display = 'none';
+                    availabilityIndicator.style.display = 'block';
+                    availabilityIndicator.innerHTML = `
+                        <div class="available-dates">
+                            <i class="fas fa-check-circle"></i> 
+                            Room is available for selected dates!
+                        </div>
+                    `;
+                    checkInInput.classList.remove('unavailable');
+                    checkOutInput.classList.remove('unavailable');
+                    nextBtn.disabled = false;
+                    updatePricing();
+                    return true;
+                } else {
+                    // Room is not available
+                    availabilityMsg.style.display = 'flex';
+                    availabilityMsg.className = 'unavailable-message';
+                    document.getElementById('availabilityMessageText').innerHTML = 
+                        'Room is not available for selected dates. Please choose different dates.';
+                    availabilityIndicator.style.display = 'block';
+                    availabilityIndicator.innerHTML = `
+                        <div class="unavailable-dates">
+                            <i class="fas fa-times-circle"></i>
+                            <strong>Unavailable Dates:</strong><br>
+                            ${conflictingDates.map(d => 
+                                `${d.checkIn.toLocaleDateString()} to ${d.checkOut.toLocaleDateString()}`
+                            ).join('<br>')}
+                        </div>
+                    `;
+                    checkInInput.classList.add('unavailable');
+                    checkOutInput.classList.add('unavailable');
+                    nextBtn.disabled = true;
+                    return false;
+                }
+
+            } catch (error) {
+                console.error("Error checking availability:", error);
+                availabilityMsg.style.display = 'flex';
+                availabilityMsg.className = 'unavailable-message';
+                document.getElementById('availabilityMessageText').textContent = 
+                    'Error checking availability. Please try again.';
+                nextBtn.disabled = true;
+                return false;
+            }
         }
 
         // Validate step 1
         function validateStep1() {
-            const isValid = selectedRoom && checkInDate && checkOutDate;
-            document.getElementById('nextBtn').disabled = !isValid;
+            const hasBasicInfo = selectedRoom && checkInDate && checkOutDate;
+            const nextBtn = document.getElementById('nextBtn');
             
-            if (isValid) {
-                updatePricing();
+            if (!hasBasicInfo) {
+                nextBtn.disabled = true;
+                return;
             }
+
+            // Don't enable if we're currently checking availability
+            if (isCheckingAvailability) {
+                nextBtn.disabled = true;
+                return;
+            }
+
+            // Check if dates are valid (check-out after check-in)
+            const checkIn = new Date(checkInDate);
+            const checkOut = new Date(checkOutDate);
+            if (checkOut <= checkIn) {
+                showAlert('Check-out date must be after check-in date', 'error');
+                nextBtn.disabled = true;
+                return;
+            }
+
+            // Don't enable until availability is confirmed
+            // The checkAvailability function will enable/disable the button
         }
 
         // Get number of nights
@@ -1325,7 +1507,14 @@
         }
 
         // Navigation functions
-        function nextStep() {
+        async function nextStep() {
+            // Double-check availability before proceeding
+            const isAvailable = await checkAvailability();
+            if (!isAvailable) {
+                showAlert('Selected dates are no longer available', 'error');
+                return;
+            }
+            
             document.getElementById('step1Content').style.display = 'none';
             document.getElementById('step2Content').style.display = 'block';
             document.getElementById('step1').classList.remove('active');
@@ -1373,7 +1562,7 @@
         document.getElementById('phone').addEventListener('input', validateStep3);
         document.getElementById('termsAccepted').addEventListener('change', validateStep3);
 
-        // Create booking
+        // Create booking with double-check validation
         async function createBooking() {
             if (!currentUser) {
                 showAlert('Please login to create a booking', 'error');
@@ -1391,11 +1580,27 @@
             confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
             try {
+                // Final availability check before creating booking
+                const isAvailable = await checkAvailability();
+                if (!isAvailable) {
+                    showAlert('Sorry, this room is no longer available for the selected dates', 'error');
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Booking';
+                    return;
+                }
+
                 const nights = getNights();
                 const roomPrice = selectedRoom.pricepernight || 0;
                 const subtotal = roomPrice * nights;
                 const serviceFee = Math.round(subtotal * 0.1);
                 const total = subtotal + serviceFee + totalExtrasPrice;
+
+                // Format dates properly for Firestore
+                const checkIn = new Date(checkInDate);
+                checkIn.setHours(14, 0, 0, 0); // Set to 2 PM check-in time
+                
+                const checkOut = new Date(checkOutDate);
+                checkOut.setHours(10, 0, 0, 0); // Set to 10 AM check-out time
 
                 const bookingData = {
                     userId: currentUser.uid,
@@ -1404,8 +1609,8 @@
                     userPhone: phone.startsWith('0') ? phone : '0' + phone,
                     roomId: selectedRoom.id,
                     roomName: selectedRoom.name,
-                    checkIn: new Date(checkInDate),
-                    checkOut: new Date(checkOutDate),
+                    checkIn: firebase.firestore.Timestamp.fromDate(checkIn),
+                    checkOut: firebase.firestore.Timestamp.fromDate(checkOut),
                     guests: guestCount,
                     nights: nights,
                     pricePerNight: roomPrice,
@@ -1422,10 +1627,37 @@
 
                 console.log("Saving booking:", bookingData);
 
-                const docRef = await db.collection("bookings").add(bookingData);
-                
-                console.log("✅ Booking created:", docRef.id);
+                // Use a transaction to ensure no double booking
+                await db.runTransaction(async (transaction) => {
+                    // Check again within transaction
+                    const bookingsRef = db.collection("bookings");
+                    const snapshot = await transaction.get(
+                        bookingsRef
+                            .where("roomId", "==", selectedRoom.id)
+                            .where("status", "in", ["confirmed", "pending"])
+                    );
 
+                    let isStillAvailable = true;
+                    snapshot.forEach(doc => {
+                        const booking = doc.data();
+                        const bookingCheckIn = booking.checkIn.toDate();
+                        const bookingCheckOut = booking.checkOut.toDate();
+
+                        if (checkIn < bookingCheckOut && checkOut > bookingCheckIn) {
+                            isStillAvailable = false;
+                        }
+                    });
+
+                    if (!isStillAvailable) {
+                        throw new Error("Room was just booked by someone else");
+                    }
+
+                    // Create the booking
+                    const newBookingRef = db.collection("bookings").doc();
+                    transaction.set(newBookingRef, bookingData);
+                });
+
+                console.log("✅ Booking created successfully");
                 showAlert('Booking created successfully!', 'success');
 
                 setTimeout(() => {
@@ -1434,7 +1666,12 @@
 
             } catch (error) {
                 console.error("❌ Error creating booking:", error);
-                showAlert('Error creating booking: ' + error.message, 'error');
+                
+                if (error.message === "Room was just booked by someone else") {
+                    showAlert('Sorry, this room was just booked by someone else. Please try different dates.', 'error');
+                } else {
+                    showAlert('Error creating booking: ' + error.message, 'error');
+                }
                 
                 confirmBtn.disabled = false;
                 confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Booking';
