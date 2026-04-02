@@ -1,3 +1,5 @@
+Here is an HTML document that creates an admin dashboard for a wildlife sanctuary. It allows you to view all database collections, with a focus on user bookings, and includes inline editing capabilities that sync changes back to the Firestore database and reflect in the user interface.
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,7 +44,6 @@
             background-color: var(--bg-main);
             color: var(--text-dark);
             min-height: 100vh;
-            font-family: 'Segoe UI', monospace;
         }
 
         /* Login Page Styles */
@@ -334,6 +335,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .table-title {
@@ -383,7 +386,7 @@
         td {
             padding: 12px;
             border-bottom: 1px solid var(--border-light);
-            vertical-align: top;
+            vertical-align: middle;
         }
 
         tr:hover {
@@ -445,6 +448,59 @@
             cursor: help;
         }
 
+        /* Editable cell styles */
+        .editable-cell {
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+        
+        .editable-cell:hover {
+            background-color: #fff3e0;
+            outline: 1px solid var(--secondary-acacia);
+        }
+        
+        .editable-cell.editing {
+            padding: 0;
+            background: white;
+        }
+        
+        .edit-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid var(--secondary-acacia);
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: monospace;
+        }
+        
+        .edit-actions {
+            display: inline-flex;
+            gap: 6px;
+            margin-left: 8px;
+        }
+        
+        .save-edit, .cancel-edit {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        
+        .save-edit {
+            color: var(--success-green);
+        }
+        
+        .cancel-edit {
+            color: var(--error-red);
+        }
+        
+        .save-edit:hover, .cancel-edit:hover {
+            background: #f0f0f0;
+        }
+
         .loading {
             text-align: center;
             padding: 50px;
@@ -496,7 +552,6 @@
             }
         }
 
-        /* No Data */
         .no-data {
             text-align: center;
             padding: 40px;
@@ -508,7 +563,6 @@
             margin-bottom: 10px;
         }
 
-        /* Back to Home */
         .back-home {
             position: fixed;
             bottom: 20px;
@@ -523,44 +577,44 @@
             align-items: center;
             gap: 5px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 99;
+        }
+        
+        .edit-hint {
+            font-size: 11px;
+            margin-left: 10px;
+            color: #888;
         }
     </style>
 </head>
 <body>
-    <!-- Admin Login Page -->
+    <!-- Login Page -->
     <div id="loginPage" class="login-container">
         <div class="login-card">
             <div class="login-header">
                 <i class="fas fa-database"></i>
                 <h2>Admin Dashboard</h2>
-                <p>Enter your admin credentials to access the database viewer</p>
+                <p>Enter admin credentials to manage database</p>
             </div>
-            
             <div class="login-form">
                 <div class="form-group">
                     <label><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="adminEmail" placeholder="admin@siroco.com" value="naivandygg@gmail.com">
+                    <input type="email" id="adminEmailInput" placeholder="admin@siroco.com" value="naivandygg@gmail.com">
                 </div>
-                
                 <div class="form-group">
                     <label><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="adminPassword" placeholder="••••••••" value="123456">
+                    <input type="password" id="adminPasswordInput" placeholder="••••••••" value="123456">
                 </div>
-                
                 <button class="login-btn" onclick="adminLogin()">
                     <i class="fas fa-sign-in-alt"></i> Access Database
                 </button>
-                
-                <div id="loginError" class="login-error">
-                    Invalid credentials. Admin access only.
-                </div>
+                <div id="loginError" class="login-error">Invalid credentials. Admin access only.</div>
             </div>
         </div>
     </div>
 
-    <!-- Admin Dashboard (hidden by default) -->
+    <!-- Admin Dashboard -->
     <div id="adminDashboard" style="display: none;">
-        <!-- Admin Header -->
         <div class="admin-header">
             <div class="admin-header-top">
                 <div class="admin-logo">
@@ -570,11 +624,10 @@
                         <p>Database Management</p>
                     </div>
                 </div>
-                
                 <div class="admin-user">
                     <div class="admin-user-info">
                         <div class="admin-user-name" id="adminName">Admin User</div>
-                        <div class="admin-user-email" id="adminEmail">admin@siroco.com</div>
+                        <div class="admin-user-email" id="adminEmailDisplay">admin@siroco.com</div>
                     </div>
                     <button class="admin-logout-btn" onclick="logout()">
                         <i class="fas fa-sign-out-alt"></i> Logout
@@ -584,78 +637,37 @@
         </div>
 
         <div class="admin-container">
-            <!-- Stats Cards -->
             <div class="admin-stats" id="statsContainer">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-database"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Total Collections</h3>
-                        <div class="stat-number" id="totalCollections">0</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Total Documents</h3>
-                        <div class="stat-number" id="totalDocuments">0</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Total Users</h3>
-                        <div class="stat-number" id="totalUsers">0</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Total Bookings</h3>
-                        <div class="stat-number" id="totalBookings">0</div>
-                    </div>
-                </div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-database"></i></div><div class="stat-info"><h3>Total Collections</h3><div class="stat-number" id="totalCollections">0</div></div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-file-alt"></i></div><div class="stat-info"><h3>Total Documents</h3><div class="stat-number" id="totalDocuments">0</div></div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><h3>Total Users</h3><div class="stat-number" id="totalUsers">0</div></div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-calendar-check"></i></div><div class="stat-info"><h3>Total Bookings</h3><div class="stat-number" id="totalBookings">0</div></div></div>
             </div>
 
-            <!-- Collection Tabs -->
             <div class="collection-tabs" id="collectionTabs"></div>
 
-            <!-- Data Table -->
             <div class="data-table-container">
                 <div class="table-header">
                     <div class="table-title">
                         <i class="fas fa-table"></i>
                         <span id="currentCollection">Select a collection</span>
+                        <span class="edit-hint"><i class="fas fa-pen"></i> Click any cell to edit (text/numbers/booleans)</span>
                     </div>
-                    <button class="refresh-btn" onclick="loadCollection(currentCollection)">
+                    <button class="refresh-btn" onclick="refreshCurrentCollection()">
                         <i class="fas fa-sync-alt"></i> Refresh
                     </button>
                 </div>
-
                 <div id="dataTableContainer">
-                    <div class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Select a collection to view data</p>
-                    </div>
+                    <div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Select a collection to view data</p></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Back to Home Link -->
-    <a href="index.html" class="back-home">
-        <i class="fas fa-arrow-left"></i> Back to Home
-    </a>
+    <a href="index.html" class="back-home"><i class="fas fa-arrow-left"></i> Back to Home</a>
 
     <script>
-        // Firebase Configuration
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyA7NuBiPSxLpfMr93R2wNjK9lqkgJ3UqcU",
             authDomain: "sirocco-6668e.firebaseapp.com",
@@ -666,266 +678,323 @@
             measurementId: "G-BPCVPVC9R7"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Global variables
         let adminUser = null;
         let currentCollection = null;
-        let collections = [
-            'users',
-            'rooms', 
-            'food_items', 
-            'activities', 
-            'bookings', 
-            'cart', 
-            'contact_messages',
-            'reviews',
-            'wildlife_sightings'
-        ];
+        let currentDocumentsData = []; // store docs for editing reference
+        let currentFields = [];
+        
+        const collections = ['users', 'rooms', 'food_items', 'activities', 'bookings', 'cart', 'contact_messages', 'reviews', 'wildlife_sightings'];
 
-        // Admin login function
+        // Helper: show alert
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${type}`;
+            alertDiv.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i><span>${message}</span>`;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 3000);
+        }
+
+        // Login
         async function adminLogin() {
-            const email = document.getElementById('adminEmail').value.trim();
-            const password = document.getElementById('adminPassword').value.trim();
-
+            const email = document.getElementById('adminEmailInput').value.trim();
+            const password = document.getElementById('adminPasswordInput').value.trim();
             try {
-                // Query users collection for admin credentials
-                const snapshot = await db.collection('users')
-                    .where('email', '==', email)
-                    .where('password', '==', password)
-                    .get();
-
+                const snapshot = await db.collection('users').where('email', '==', email).where('password', '==', password).get();
                 if (snapshot.empty) {
                     document.getElementById('loginError').style.display = 'block';
                     return;
                 }
-
-                // Get user data
                 const userDoc = snapshot.docs[0];
-                const userData = userDoc.data();
-
-                // Check if user is admin (you can add an admin flag to users)
-                // For now, we'll allow access and check if email contains 'admin'
-                // You can modify this logic based on your needs
-                
-                adminUser = {
-                    uid: userDoc.id,
-                    ...userData
-                };
-
-                // Hide login, show dashboard
+                adminUser = { uid: userDoc.id, ...userDoc.data() };
                 document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'block';
-
-                // Update admin info
                 document.getElementById('adminName').textContent = adminUser.fullName || 'Admin User';
-                document.getElementById('adminEmail').textContent = adminUser.email;
-
-                // Load dashboard data
+                document.getElementById('adminEmailDisplay').textContent = adminUser.email;
                 loadDashboardStats();
                 renderCollectionTabs();
-
             } catch (error) {
                 console.error("Login error:", error);
                 document.getElementById('loginError').style.display = 'block';
             }
         }
 
-        // Logout function
         function logout() {
             adminUser = null;
             document.getElementById('loginPage').style.display = 'block';
             document.getElementById('adminDashboard').style.display = 'none';
+            currentCollection = null;
         }
 
-        // Load dashboard statistics
         async function loadDashboardStats() {
             try {
-                let totalDocuments = 0;
-                let totalUsers = 0;
-                let totalBookings = 0;
-
-                for (const collection of collections) {
-                    const snapshot = await db.collection(collection).get();
-                    totalDocuments += snapshot.size;
-                    
-                    if (collection === 'users') totalUsers = snapshot.size;
-                    if (collection === 'bookings') totalBookings = snapshot.size;
+                let totalDocs = 0, totalUsers = 0, totalBookings = 0;
+                for (const col of collections) {
+                    const snap = await db.collection(col).get();
+                    totalDocs += snap.size;
+                    if (col === 'users') totalUsers = snap.size;
+                    if (col === 'bookings') totalBookings = snap.size;
                 }
-
                 document.getElementById('totalCollections').textContent = collections.length;
-                document.getElementById('totalDocuments').textContent = totalDocuments;
+                document.getElementById('totalDocuments').textContent = totalDocs;
                 document.getElementById('totalUsers').textContent = totalUsers;
                 document.getElementById('totalBookings').textContent = totalBookings;
-
-            } catch (error) {
-                console.error("Error loading stats:", error);
-                showAlert('Error loading statistics', 'error');
-            }
+            } catch (error) { console.error(error); }
         }
 
-        // Render collection tabs
         async function renderCollectionTabs() {
             const tabsContainer = document.getElementById('collectionTabs');
             tabsContainer.innerHTML = '';
-
-            for (const collection of collections) {
+            for (const col of collections) {
                 try {
-                    const snapshot = await db.collection(collection).limit(1).get();
+                    const snap = await db.collection(col).limit(1).get();
+                    let icon = 'fa-database';
+                    if (col.includes('user')) icon = 'fa-users';
+                    else if (col.includes('room')) icon = 'fa-bed';
+                    else if (col.includes('food')) icon = 'fa-utensils';
+                    else if (col.includes('activ')) icon = 'fa-hiking';
+                    else if (col.includes('booking')) icon = 'fa-calendar-check';
+                    else if (col.includes('cart')) icon = 'fa-shopping-cart';
+                    else if (col.includes('message')) icon = 'fa-envelope';
+                    else if (col.includes('review')) icon = 'fa-star';
+                    else if (col.includes('wildlife')) icon = 'fa-paw';
+                    
+                    const fullSnap = await db.collection(col).get();
                     const tab = document.createElement('div');
                     tab.className = 'collection-tab';
-                    if (collection === currentCollection) tab.classList.add('active');
-                    
-                    // Set icon based on collection name
-                    let icon = 'fa-database';
-                    if (collection.includes('user')) icon = 'fa-users';
-                    else if (collection.includes('room')) icon = 'fa-bed';
-                    else if (collection.includes('food')) icon = 'fa-utensils';
-                    else if (collection.includes('activ')) icon = 'fa-hiking';
-                    else if (collection.includes('booking')) icon = 'fa-calendar-check';
-                    else if (collection.includes('cart')) icon = 'fa-shopping-cart';
-                    else if (collection.includes('message')) icon = 'fa-envelope';
-                    else if (collection.includes('review')) icon = 'fa-star';
-                    else if (collection.includes('wildlife')) icon = 'fa-paw';
-                    
-                    tab.innerHTML = `
-                        <i class="fas ${icon}"></i>
-                        ${collection.replace('_', ' ')}
-                        <span class="doc-count">${snapshot.size}</span>
-                    `;
-                    
-                    tab.onclick = () => loadCollection(collection);
+                    if (col === currentCollection) tab.classList.add('active');
+                    tab.innerHTML = `<i class="fas ${icon}"></i> ${col.replace('_', ' ')} <span class="doc-count">${fullSnap.size}</span>`;
+                    tab.onclick = () => loadCollection(col);
                     tabsContainer.appendChild(tab);
-                } catch (error) {
-                    console.error(`Error loading ${collection}:`, error);
-                }
+                } catch (err) { console.error(err); }
             }
         }
 
-        // Load collection data
+        async function refreshCurrentCollection() {
+            if (currentCollection) await loadCollection(currentCollection);
+        }
+
+        // Core: load collection with editable cells support
         async function loadCollection(collectionName) {
             currentCollection = collectionName;
-            document.getElementById('currentCollection').textContent = 
-                collectionName.replace('_', ' ').toUpperCase();
-
-            // Update active tab
-            document.querySelectorAll('.collection-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event?.currentTarget?.classList.add('active');
-
+            document.getElementById('currentCollection').innerHTML = `<i class="fas fa-folder-open"></i> ${collectionName.replace('_', ' ').toUpperCase()}`;
+            
+            // update active tab style
+            document.querySelectorAll('.collection-tab').forEach(tab => tab.classList.remove('active'));
+            const tabs = document.querySelectorAll('.collection-tab');
+            for (let tab of tabs) {
+                if (tab.innerText.includes(collectionName.replace('_', ' '))) {
+                    tab.classList.add('active');
+                    break;
+                }
+            }
+            
             const container = document.getElementById('dataTableContainer');
             container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Loading data...</p></div>';
-
+            
             try {
                 const snapshot = await db.collection(collectionName).get();
-                
                 if (snapshot.empty) {
-                    container.innerHTML = `
-                        <div class="no-data">
-                            <i class="fas fa-database"></i>
-                            <p>No documents found in ${collectionName}</p>
-                        </div>
-                    `;
+                    container.innerHTML = `<div class="no-data"><i class="fas fa-database"></i><p>No documents in ${collectionName}</p></div>`;
                     return;
                 }
-
-                // Get all field names from all documents
-                const fieldSet = new Set();
-                const documents = [];
-
+                
+                const docs = [];
+                const allFieldsSet = new Set();
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    documents.push({
-                        id: doc.id,
-                        ...data
-                    });
-                    
-                    Object.keys(data).forEach(key => fieldSet.add(key));
+                    const docObj = { id: doc.id, ...data };
+                    docs.push(docObj);
+                    Object.keys(data).forEach(k => allFieldsSet.add(k));
                 });
-
-                const fields = Array.from(fieldSet).sort();
-
-                // Build table
-                let tableHtml = `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Document ID</th>
-                                ${fields.map(field => `<th>${field}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                documents.forEach(doc => {
-                    tableHtml += '<tr>';
-                    
-                    // Document ID
-                    tableHtml += `<td><span class="document-id">${doc.id}</span></td>`;
-                    
-                    // Fields
-                    fields.forEach(field => {
+                currentDocumentsData = docs;
+                const fields = Array.from(allFieldsSet).sort();
+                currentFields = fields;
+                
+                // Build table with editable cells
+                let html = `<div style="overflow-x:auto;"><table><thead><tr><th>Document ID</th>${fields.map(f => `<th>${f}</th>`).join('')}</tr></thead><tbody>`;
+                
+                for (const doc of docs) {
+                    html += `<tr data-docid="${doc.id}">`;
+                    html += `<td class="document-id">${doc.id}</td>`;
+                    for (const field of fields) {
                         const value = doc[field];
-                        tableHtml += '<td>';
+                        let displayValue = '';
+                        let rawValue = value;
+                        let valueType = 'primitive';
                         
                         if (value === null || value === undefined) {
-                            tableHtml += '<span style="color: #999;">null</span>';
+                            displayValue = '<span style="color:#999;">null</span>';
+                            rawValue = null;
                         } else if (value && typeof value === 'object') {
                             if (value.toDate) {
-                                // Firestore timestamp
-                                const date = value.toDate();
-                                tableHtml += `<span class="timestamp-badge">${date.toLocaleString()}</span>`;
+                                displayValue = `<span class="timestamp-badge">${value.toDate().toLocaleString()}</span>`;
+                                rawValue = value;
+                                valueType = 'timestamp';
                             } else if (Array.isArray(value)) {
-                                // Array
-                                tableHtml += `<span class="array-badge" title="${JSON.stringify(value)}">Array[${value.length}]</span>`;
+                                displayValue = `<span class="array-badge" title="${escapeHtml(JSON.stringify(value))}">Array[${value.length}]</span>`;
+                                rawValue = value;
+                                valueType = 'array';
                             } else {
-                                // Object
-                                tableHtml += `<pre class="json-data">${JSON.stringify(value, null, 2)}</pre>`;
+                                displayValue = `<pre class="json-data">${escapeHtml(JSON.stringify(value, null, 2))}</pre>`;
+                                rawValue = value;
+                                valueType = 'object';
                             }
                         } else if (typeof value === 'boolean') {
-                            tableHtml += `<span class="boolean-badge ${value ? 'boolean-true' : 'boolean-false'}">${value}</span>`;
+                            displayValue = `<span class="boolean-badge ${value ? 'boolean-true' : 'boolean-false'}">${value}</span>`;
+                            rawValue = value;
+                            valueType = 'boolean';
                         } else {
-                            tableHtml += value;
+                            displayValue = escapeHtml(String(value));
+                            rawValue = value;
+                            valueType = 'string-number';
                         }
                         
-                        tableHtml += '</td>';
-                    });
-                    
-                    tableHtml += '</tr>';
-                });
-
-                tableHtml += '</tbody></table>';
-                container.innerHTML = tableHtml;
-
+                        // Store metadata in data attributes
+                        html += `<td class="editable-cell" data-field="${field}" data-docid="${doc.id}" data-valuetype="${valueType}" data-rawvalue="${escapeHtml(JSON.stringify(rawValue))}">${displayValue}</td>`;
+                    }
+                    html += `</tr>`;
+                }
+                html += `</tbody></table></div>`;
+                container.innerHTML = html;
+                
+                // Attach click handlers for inline editing
+                attachEditHandlers();
+                
             } catch (error) {
                 console.error("Error loading collection:", error);
-                container.innerHTML = `
-                    <div class="no-data">
-                        <i class="fas fa-exclamation-triangle" style="color: var(--error-red);"></i>
-                        <p>Error loading data: ${error.message}</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="no-data"><i class="fas fa-exclamation-triangle" style="color:var(--error-red);"></i><p>Error: ${error.message}</p></div>`;
             }
         }
-
-        // Show alert
-        function showAlert(message, type = 'success') {
-            const alert = document.createElement('div');
-            alert.className = `alert ${type}`;
-            alert.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                <span>${message}</span>
-            `;
-            document.body.appendChild(alert);
-
-            setTimeout(() => alert.remove(), 3000);
+        
+        function attachEditHandlers() {
+            const cells = document.querySelectorAll('.editable-cell');
+            cells.forEach(cell => {
+                cell.removeEventListener('click', cellClickHandler);
+                cell.addEventListener('click', cellClickHandler);
+            });
         }
-
-        // Check if user is already logged in (optional)
-        // You can implement session storage if needed
+        
+        function cellClickHandler(e) {
+            // Prevent if already editing
+            if (this.querySelector('.edit-input')) return;
+            e.stopPropagation();
+            
+            const field = this.dataset.field;
+            const docId = this.dataset.docid;
+            const valueType = this.dataset.valuetype;
+            let rawValueStr = this.dataset.rawvalue;
+            let currentValue;
+            try {
+                currentValue = rawValueStr === 'undefined' ? undefined : JSON.parse(rawValueStr);
+            } catch (er) { currentValue = rawValueStr; }
+            
+            // For arrays/objects/timestamps, editing simplified: show JSON string for object, or plain text for timestamp/array (just demo)
+            if (valueType === 'array' || valueType === 'object') {
+                showAlert('Editing complex objects not supported inline. Use Firebase Console.', 'error');
+                return;
+            }
+            
+            let displayEditValue = '';
+            if (valueType === 'timestamp') {
+                showAlert('Timestamp editing: please delete/recreate field via console.', 'error');
+                return;
+            } else if (valueType === 'boolean') {
+                displayEditValue = currentValue === true ? 'true' : 'false';
+            } else {
+                displayEditValue = currentValue !== undefined && currentValue !== null ? String(currentValue) : '';
+            }
+            
+            const originalHtml = this.innerHTML;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'edit-input';
+            input.value = displayEditValue;
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.innerHTML = '<i class="fas fa-check"></i>';
+            saveBtn.className = 'save-edit';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.innerHTML = '<i class="fas fa-times"></i>';
+            cancelBtn.className = 'cancel-edit';
+            
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.gap = '6px';
+            wrapper.appendChild(input);
+            const btnGroup = document.createElement('div');
+            btnGroup.appendChild(saveBtn);
+            btnGroup.appendChild(cancelBtn);
+            wrapper.appendChild(btnGroup);
+            
+            this.innerHTML = '';
+            this.appendChild(wrapper);
+            this.classList.add('editing');
+            input.focus();
+            
+            const saveHandler = async () => {
+                let newValue = input.value.trim();
+                let parsedValue;
+                // try to parse number/boolean intelligently
+                if (valueType === 'boolean') {
+                    parsedValue = (newValue.toLowerCase() === 'true');
+                } else if (valueType === 'string-number') {
+                    if (newValue === '') parsedValue = '';
+                    else if (!isNaN(Number(newValue)) && newValue !== '') parsedValue = Number(newValue);
+                    else parsedValue = newValue;
+                } else {
+                    parsedValue = newValue;
+                }
+                
+                try {
+                    // Update Firestore
+                    await db.collection(currentCollection).doc(docId).update({
+                        [field]: parsedValue
+                    });
+                    showAlert(`✅ Updated ${field} successfully`, 'success');
+                    // Reload current collection to reflect changes in UI
+                    await loadCollection(currentCollection);
+                } catch (err) {
+                    console.error(err);
+                    showAlert(`Update failed: ${err.message}`, 'error');
+                    this.innerHTML = originalHtml;
+                    this.classList.remove('editing');
+                    attachEditHandlers();
+                }
+            };
+            
+            const cancelHandler = () => {
+                this.innerHTML = originalHtml;
+                this.classList.remove('editing');
+                attachEditHandlers();
+            };
+            
+            saveBtn.onclick = (eve) => { eve.stopPropagation(); saveHandler(); };
+            cancelBtn.onclick = (eve) => { eve.stopPropagation(); cancelHandler(); };
+            input.addEventListener('keypress', (eve) => { if (eve.key === 'Enter') saveHandler(); });
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+                return c;
+            });
+        }
+        
+        // Expose globally
+        window.adminLogin = adminLogin;
+        window.logout = logout;
+        window.loadCollection = loadCollection;
+        window.refreshCurrentCollection = refreshCurrentCollection;
     </script>
 </body>
 </html>
+```
